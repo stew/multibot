@@ -11,7 +11,7 @@ import org.json4s.JsonDSL._
 import java.io.{PrintStream, ByteArrayOutputStream}
 
 object Multibottest extends PircBot {
-    val PRODUCTION = Option(System getProperty "multibot.production") map (_ toBoolean) getOrElse false
+    val PRODUCTION = Option(System getenv "multibot.production") map (_ toBoolean) getOrElse false
     val BOTNAME = if (PRODUCTION) "multibot_" else "multibot__"
     val BOTMSG = BOTNAME + ":"
     val NUMLINES = 5

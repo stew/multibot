@@ -50,3 +50,5 @@ scalacOptions ++= Seq("-feature", "-language:_", "-deprecation", "-Xexperimental
 //}
 
 resolvers += "Sonatype Nexus Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots"
+
+com.typesafe.sbt.SbtStartScript.startScriptForClassesSettings

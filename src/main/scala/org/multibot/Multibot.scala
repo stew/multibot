@@ -1,6 +1,6 @@
 package org.multibot
 
-import org.jibble.pircbot.PircBot
+import org.jibble.pircbot.{NickAlreadyInUseException, PircBot}
 import dispatch._
 import Http._
 import org.json4s.native.JsonMethods._
@@ -18,20 +18,26 @@ object Multibottest extends PircBot {
     val INNUMLINES = 8
     val LAMBDABOT = "lambdabot"
     val LAMBDABOTIGNORE = Set("#scala", "#scalaz")
-    val ADMINS = List("imeredith", "lopex", "tpolecat")
+    val ADMINS = List("imeredith", "lopex", "tpolecat", "OlegYch")
 
     def main(args: Array[String]) {
         setName(BOTNAME)
         setVerbose(true)
         setEncoding("UTF-8")
-        connect()
+      tryConnect()
     }
 
+  private def tryConnect(): Unit = try connect()
+  catch {
+    case e: NickAlreadyInUseException =>
+      setName(getName + "_")
+      tryConnect()
+  }
 
     def connect() {
         connect("irc.freenode.net")
         val channels = if (PRODUCTION)
-            List("#clojure.pl", "#scala.pl", "#jruby", "#ruby.pl", "#rubyonrails.pl", "#scala", "#scalaz", "#scala-fr", "#lift", "#playframework", "#bostonpython", "#fp-in-scala", "#CourseraProgfun", "#shapeless")
+            List("#clojure.pl", "#scala.pl", "#jruby", "#ruby.pl", "#rubyonrails.pl", "#scala", "#scalaz", "#scala-fr", "#lift", "#playframework", "#bostonpython", "#fp-in-scala", "#CourseraProgfun", "#shapeless", "#akka", "#sbt")
         else
             List("#multibottest", "#multibottest2")
 
@@ -40,7 +46,7 @@ object Multibottest extends PircBot {
 
     override def onDisconnect: Unit = while (true)
         try {
-            connect()
+            tryConnect()
             return
         } catch { case e: Exception =>
             e.printStackTrace
@@ -114,7 +120,7 @@ object Multibottest extends PircBot {
             si.quietImport("org.scalacheck.Prop._")
             si
         })
-        captureOutput{f(si, conOut)}
+        ScriptSecurityManager.hardenPermissions(captureOutput{f(si, conOut)})
     }
 
     import org.jruby.{RubyInstanceConfig, Ruby}
@@ -133,7 +139,7 @@ object Multibottest extends PircBot {
             val scope = new ManyVarsDynamicScope(jruby.getStaticScopeFactory.newEvalScope(jruby.getCurrentContext.getCurrentScope.getStaticScope), jruby.getCurrentContext.getCurrentScope)
             (jruby, scope)
         })
-        captureOutput{f(jr, sc, conOut)}
+        ScriptSecurityManager.hardenPermissions(captureOutput{f(jr, sc, conOut)})
     }
 
     //import org.python.util.PythonInterpreter
@@ -158,7 +164,7 @@ object Multibottest extends PircBot {
         // case "@listchans" => sendMessage(msg.channel, getChannels mkString " ")
 
         case "@bot" | "@bots" => sendMessage(msg.channel, ":)")
-        case "@help" => sendMessage(msg.channel, "(!) scala (!reset|type|scalex), (%) ruby (%reset), (,) clojure, (>>) haskell, (^) python, (&) javascript, (##) groovy, (<prefix>paste url), lambdabot relay (" + !LAMBDABOTIGNORE.contains(msg.channel) + "), url: https://github.com/lopex/multibot")
+        case "@help" => sendMessage(msg.channel, "(!) scala (!reset|type|scalex), (%) ruby (%reset), (,) clojure, (>>) haskell, (^) python, (&) javascript, (##) groovy, (<prefix>paste url), lambdabot relay (" + !LAMBDABOTIGNORE.contains(msg.channel) + "), url: https://github.com/OlegYch/multibot")
 
         case Cmd("!" :: m :: Nil) => scalaInterpreter(msg.channel){(si, cout) =>
             import scala.tools.nsc.interpreter.Results._

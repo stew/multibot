@@ -1,52 +1,86 @@
 package org.multibot
 
-import java.io.FilePermission
-import java.security.Permission
+import java.security.{SecurityPermission, Permission}
+import java.io.{File, FilePermission}
+import java.util.PropertyPermission
 
 /**
   */
 object ScriptSecurityManager extends SecurityManager {
   System.setProperty("actors.enableForkJoin", false + "")
-  private val sm = System.getSecurityManager
-  private var activated = false
+
+  private val lock = new Object
+  @volatile private var sm: Option[SecurityManager] = None
+  @volatile private var activated = false
+
+  def hardenPermissions[T](f: => T): T = lock.synchronized {
+    try {
+      activate
+      f
+    } finally {
+      deactivate
+    }
+  }
 
   override def checkPermission(perm: Permission) {
     if (activated) {
-      val read = perm.getActions == ("read")
-      val allowedMethods = Seq("accessDeclaredMembers", "suppressAccessChecks", "createClassLoader", "setContextClassLoader", "getClassLoader",
-        "accessClassInPackage.sun.reflect", "accessClassInPackage.sun.misc", "setIO", "getProtectionDomain").contains(perm.getName)
+      val read = perm.getActions == "read"
+      val readWrite = perm.getActions == "read,write"
+      val allowedMethods = Seq(
+        "accessDeclaredMembers", "suppressAccessChecks", "createClassLoader",
+        "accessClassInPackage.sun.reflect", "getStackTrace", "getClassLoader",
+        "setIO", "getProtectionDomain", "setContextClassLoader", "getClassLoader", "accessClassInPackage.sun.misc"
+      ).contains(perm.getName)
+      val getenv = perm.getName.startsWith("getenv")
       val file = perm.isInstanceOf[FilePermission]
-      val readClass = file && (perm.getName.endsWith(".class") || perm.getName.endsWith(".jar") || perm
-        .getName.endsWith("library.properties")) && read
-      val allow = readClass || (read && !file) || allowedMethods
+      val property = perm.isInstanceOf[PropertyPermission]
+      val security = perm.isInstanceOf[SecurityPermission]
+
+      deactivate
+      val notExistingFile = !new File(perm.getName).exists()
+
+      val allowedFiles =
+        Seq( """.*\.class""", """.*\.jar""", """.*classes.*""", """.*library\.properties""",
+          """.*src/main/scala.*""", """.*/?target""")
+      val isClass = allowedFiles.exists(perm.getName.replaceAll( """\""" + """\""", "/").matches)
+      activate
+
+      val readClass = file && isClass && read
+      val readMissingFile = file && notExistingFile && read
+      lazy val allowedClass = new Throwable().getStackTrace.exists { element =>
+        val name = element.getFileName
+        //todo apply more robust checks
+        List("BytecodeWriters.scala", "Settings.scala", "PathResolver.scala", "JavaMirrors.scala", "ForkJoinPool.java", "Using.scala")
+            .contains(name)
+      }
+
+      val allow = readMissingFile || readClass || (read && !file) || allowedMethods || getenv ||
+          (property && readWrite) || (security && perm.getName.startsWith("getProperty.")) || allowedClass
       if (!allow) {
-        println(perm)
-        throw new SecurityException(perm.toString)
+        val exception = new SecurityException(perm.toString)
+        exception.printStackTrace()
+        throw exception
       }
     } else {
-      if (sm != null) {
-        sm.checkPermission(perm)
+      //don't use closures here to avoid SOE
+      if (sm.isDefined && sm.get != this) {
+        sm.get.checkPermission(perm)
       }
     }
 
   }
 
-  def deactivate {
+  private def deactivate {
     activated = false
-    System.setSecurityManager(sm)
+    if (System.getSecurityManager == this) sm.foreach(System.setSecurityManager)
   }
 
-  def activate {
-    System.setSecurityManager(this)
-    activated = true
-  }
-
-  def hardenPermissions[T](f: => T): T = this.synchronized {
-    try {
-      this.activate
-      f
-    } finally {
-      this.deactivate
+  private def activate {
+    val manager = System.getSecurityManager
+    if (manager != this) {
+      sm = Option(manager)
+      System.setSecurityManager(this)
     }
+    activated = true
   }
 }

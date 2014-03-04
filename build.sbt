@@ -1,44 +1,44 @@
-import AssemblyKeys._
+import sbtassembly.Plugin.AssemblyKeys
 
 name := "multibot"
 
 version := "1.0"
 
-scalaVersion := "2.10.3"
+scalaVersion := "2.10.4-RC3"
 
 libraryDependencies ++= {
-    val scalazVersion = "7.1.0-SNAPSHOT"
-    val scalazContribVersion = "0.1.4"
-    val crossVersion = CrossVersion.fullMapped{case "2.10.3" => "2.10"}
-    val xVersion = CrossVersion.fullMapped{case "2.10.3" => "2.10.0"}
-    val shapeCrossVersion = CrossVersion.fullMapped{case "2.10.3" => "2.10.3"}
-    val scheckCrossVersion = CrossVersion.fullMapped{case "2.10.3" => "2.10.0"}
-    Seq(
-        "com.chuusai" %% "shapeless" % "2.0.0-SNAPSHOT" cross shapeCrossVersion,
-        "org.scalaz" %% "scalaz-core" % scalazVersion cross crossVersion,
-        "org.scalaz" %% "scalaz-iteratee" % scalazVersion cross crossVersion,
-        "org.scalaz" %% "scalaz-effect" % scalazVersion cross crossVersion,
-        "org.scalaz" %% "scalaz-typelevel" % scalazVersion cross crossVersion,
-        "org.scalaz" %% "scalaz-scalacheck-binding" % scalazVersion cross crossVersion,
-        "org.typelevel" %% "scalaz-contrib-210" % scalazContribVersion cross crossVersion,
-        "org.scalaz" %% "scalaz-concurrent" % scalazVersion cross crossVersion,
-        "pircbot" % "pircbot" % "1.5.0",
-        "org.scala-lang" % "scala-compiler" % "2.10.0",
-        //"org.scalacheck" %% "scalacheck" % "1.10.1-SNAPSHOT" cross scheckCrossVersion,
-        "net.databinder" %% "dispatch-http" % "0.8.8",
-        "org.json4s" %% "json4s-native" % "3.1.0",
-        // "org.spire-math"  %% "spire" % "0.7.3" cross crossVersion,
-        // "org.spire-math"  %% "spire-scalacheck-binding" % "0.7.3" cross crossVersion,
-        // "net.liftweb" %% "lift-util" % "2.5-SNAPSHOT",
-        "org.jruby" % "jruby-complete" % "1.7.10"
-)}
+  val scalazVersion = "7.1.0-SNAPSHOT"
+  val scalazContribVersion = "0.2-SNAPSHOT"
+  val shapelessContribVersion = "0.2-SNAPSHOT"
+  Seq(
+    "org.typelevel" %% "scalaz-contrib-210" % scalazContribVersion,
+    "org.typelevel" %% "scalaz-contrib-validation" % scalazContribVersion,
+    "org.typelevel" %% "scalaz-contrib-undo" % scalazContribVersion,
+    "org.typelevel" %% "scalaz-lift" % scalazContribVersion,
+    "org.typelevel" %% "scalaz-nscala-time" % scalazContribVersion,
+    "org.typelevel" %% "scalaz-spire" % scalazContribVersion,
+    "org.typelevel" %% "shapeless-scalacheck" % shapelessContribVersion,
+    "org.typelevel" %% "shapeless-spire" % shapelessContribVersion,
+    "org.typelevel" %% "shapeless-scalaz" % shapelessContribVersion,
+    "org.scalaz" %% "scalaz-iteratee" % scalazVersion,
+    "org.scalaz" %% "scalaz-effect" % scalazVersion,
+    "org.scalaz" %% "scalaz-typelevel" % scalazVersion,
+    "org.scalaz" %% "scalaz-scalacheck-binding" % scalazVersion,
+    "org.scalaz" %% "scalaz-concurrent" % scalazVersion,
+    "pircbot" % "pircbot" % "1.5.0",
+    "org.scala-lang" % "scala-compiler" % "2.10.4-RC3",
+    "net.databinder" %% "dispatch-http" % "0.8.8",
+    "org.json4s" %% "json4s-native" % "3.1.0",
+    "org.jruby" % "jruby-complete" % "1.7.10"
+  )
+}
 
 
 // autoCompilerPlugins := true
 
-assembleArtifact in packageBin := false
+AssemblyKeys.assembleArtifact in packageBin := false
 
-seq(assemblySettings: _*)
+seq(sbtassembly.Plugin.assemblySettings: _*)
 
 scalacOptions ++= Seq("-feature", "-language:_", "-deprecation", "-Xexperimental")
 

@@ -57,26 +57,27 @@ object Multibottest extends PircBot {
 
 
   override def handleLine(line: String): Unit = {
+    import scala.concurrent.{Promise, Future}
+    import scala.util.Success
+    import scala.concurrent.ExecutionContext.Implicits.global
+    val timeout = Promise[Boolean]()
     try {
-      import scala.concurrent.{Promise, Future}
-      import scala.util.Success
-      import scala.concurrent.ExecutionContext.Implicits.global
-      val p = Promise[Boolean]()
       Future {
         scala.concurrent.blocking(Thread.sleep(1000 * 30))
-        p.tryComplete(Success(true))
+        timeout.tryComplete(Success(true))
       }
-      p.future.foreach { timeout =>
+      timeout.future.foreach { timeout =>
         if (timeout) {
           println(s"!!!!!!!!! timed out evaluating $line")
           sys.exit(-1)
         }
       }
       super.handleLine(line)
-      p.tryComplete(Success(false))
     } catch {
       case e: Exception => throw e
       case e: Throwable => e.printStackTrace(); sys.exit(-1)
+    } finally  {
+      timeout.tryComplete(Success(false))
     }
   }
 

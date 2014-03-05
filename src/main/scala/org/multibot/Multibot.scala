@@ -44,17 +44,26 @@ object Multibottest extends PircBot {
     channels foreach joinChannel
   }
 
-  override def onDisconnect: Unit = while (true)
+  override def onDisconnect(): Unit = while (true)
     try {
       tryConnect()
       return
     } catch {
       case e: Exception =>
-        e.printStackTrace
+        e.printStackTrace()
         Thread sleep 10000
     }
 
   var lastChannel: Option[String] = None
+
+
+  override def handleLine(line: String): Unit = {
+    try super.handleLine(line)
+    catch {
+      case e: Exception => throw e
+      case e: Throwable => e.printStackTrace(); sys.exit(-1)
+    }
+  }
 
   override def onPrivateMessage(sender: String, login: String, hostname: String, message: String) = sender match {
     case LAMBDABOT => lastChannel foreach (sendMessage(_, message))

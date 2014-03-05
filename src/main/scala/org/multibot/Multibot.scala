@@ -2,7 +2,6 @@ package org.multibot
 
 import org.jibble.pircbot.{NickAlreadyInUseException, PircBot}
 import dispatch._
-import Http._
 import org.json4s.native.JsonMethods._
 import org.json4s.native._
 import org.json4s.JsonAST._
@@ -58,8 +57,24 @@ object Multibottest extends PircBot {
 
 
   override def handleLine(line: String): Unit = {
-    try super.handleLine(line)
-    catch {
+    try {
+      import scala.concurrent.{Promise, Future}
+      import scala.util.Success
+      import scala.concurrent.ExecutionContext.Implicits.global
+      val p = Promise[Boolean]()
+      Future {
+        scala.concurrent.blocking(Thread.sleep(1000 * 30))
+        p.tryComplete(Success(true))
+      }
+      p.future.foreach { timeout =>
+        if (timeout) {
+          println(s"!!!!!!!!! timed out evaluating $line")
+          sys.exit(-1)
+        }
+      }
+      super.handleLine(line)
+      p.tryComplete(Success(false))
+    } catch {
       case e: Exception => throw e
       case e: Throwable => e.printStackTrace(); sys.exit(-1)
     }
@@ -211,26 +226,27 @@ object Multibottest extends PircBot {
     case "!reset-all" => scalaInt.clear
 
     case Cmd("!scalex" :: m :: Nil) => respondJSON(:/("api.scalex.org") <<? Map("q" -> m)) {
-      json => Some((
-        for {
-          JObject(obj) <- json
-          JField("results", JArray(arr)) <- obj
-          JObject(res) <- arr
-          JField("resultType", JString(rtype)) <- res
+      json =>
+        Some((
+          for {
+            JObject(obj) <- json
+            JField("results", JArray(arr)) <- obj
+            JObject(res) <- arr
+            JField("resultType", JString(rtype)) <- res
 
-          JField("parent", JObject(parent)) <- res
-          JField("name", JString(pname)) <- parent
-          JField("typeParams", JString(ptparams)) <- parent
+            JField("parent", JObject(parent)) <- res
+            JField("name", JString(pname)) <- parent
+            JField("typeParams", JString(ptparams)) <- parent
 
-          JField("name", JString(name)) <- res
-          JField("typeParams", JString(tparams)) <- res
+            JField("name", JString(name)) <- res
+            JField("typeParams", JString(tparams)) <- res
 
-          JField("comment", JObject(comment)) <- res
-          JField("short", JObject(short)) <- comment
-          JField("txt", JString(txt)) <- short
+            JField("comment", JObject(comment)) <- res
+            JField("short", JObject(short)) <- comment
+            JField("txt", JString(txt)) <- short
 
-          JField("valueParams", JString(vparams)) <- res
-        } yield pname + ptparams + " " + name + tparams + ": " + vparams + ": " + rtype + " '" + txt + "'").mkString("\n"))
+            JField("valueParams", JString(vparams)) <- res
+          } yield pname + ptparams + " " + name + tparams + ": " + vparams + ": " + rtype + " '" + txt + "'").mkString("\n"))
     }
 
     case Cmd("!!" :: m :: Nil) => respond(:/("www.simplyscala.com") / "interp" <<? Map("bot" -> "irc", "code" -> m)) {
@@ -288,9 +304,11 @@ object Multibottest extends PircBot {
                                      """
 
       respondJSON((:/("jsapp.us") / "ajax" << compact(render(("actions", List(("action", "test") ~("code", src) ~("randToken", "3901") ~("fileName", ""))) ~("user", "null") ~("token", "null"))))) {
-        case JObject(JField("user", JNull) :: JField("data", JArray(JString(data) :: Nil)) :: Nil) => var s: String = ""; (new Http with NoLogging)(url(data) >- {
-          source => s = source
-        }); Some(s)
+        case JObject(JField("user", JNull) :: JField("data", JArray(JString(data) :: Nil)) :: Nil) => var s: String = "";
+          (new Http with NoLogging)(url(data) >- {
+            source => s = source
+          });
+          Some(s)
         case e => Some("unexpected: " + e)
       }
 
@@ -362,7 +380,8 @@ object Multibottest extends PircBot {
     val handler = request >+> {
       r =>
         r >:> {
-          headers => headers.get("Set-Cookie").foreach(h => h.foreach(c => cookies(channel + host) = c.split(";").head))
+          headers =>
+            headers.get("Set-Cookie").foreach(h => h.foreach(c => cookies(channel + host) = c.split(";").head))
             r >~ {
               source =>
                 val lines = source.getLines.take(NUMLINES)

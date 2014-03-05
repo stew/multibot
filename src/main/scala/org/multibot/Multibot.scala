@@ -76,7 +76,7 @@ object Multibottest extends PircBot {
     } catch {
       case e: Exception => throw e
       case e: Throwable => e.printStackTrace(); sys.exit(-1)
-    } finally  {
+    } finally {
       timeout.tryComplete(Success(false))
     }
   }
@@ -263,8 +263,17 @@ object Multibottest extends PircBot {
       case e => Some("unexpected: " + e)
     }
 
-    case Cmd(">>" :: m :: Nil) => respondJSON(:/("tryhaskell.org") / "haskell.json" <<? Map("method" -> "eval", "expr" -> m)) {
-      case JObject(JField("result", JString(result)) :: JField("type", JString(xtype)) :: JField("expr", JString(_)) :: Nil) => Some(result + " :: " + xtype)
+    case Cmd(">>" :: m :: Nil) => respondJSON(:/("tryhaskell.org") / "eval" <<? Map("exp" -> m)) {
+      case JObject(
+      JField("success",
+      JObject(
+      JField("expr", JString(_))
+        :: JField("stdout", JArray(out))
+        :: JField("value", JString(result))
+        :: JField("files", _)
+        :: JField("type", JString(xtype))
+        :: Nil))
+        :: Nil) => Some(s"$result :: $xtype" + out.mkString("\n"))
       case JObject(JField("error", JString(error)) :: Nil) => Some(error)
       case e => Some("unexpected: " + e)
     }

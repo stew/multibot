@@ -31,6 +31,9 @@ object Multibottest extends PircBot {
     case e: NickAlreadyInUseException =>
       setName(getName + "_")
       tryConnect()
+    case e: Exception =>
+      e.printStackTrace()
+      sys.exit(-1)
   }
 
   def connect() {

@@ -119,7 +119,7 @@ object Multibottest extends PircBot {
   val conStdOut = Console.out
   val conStdErr = Console.err
 
-  def captureOutput(block: => Unit) = try {
+  def captureOutput[T](block: => T): T = try {
     System setOut conOutStream
     System setErr conOutStream
     Console setOut conOutStream
@@ -138,7 +138,7 @@ object Multibottest extends PircBot {
 
   val scalaInt = scala.collection.mutable.Map[String, IMain]()
 
-  def scalaInterpreter(channel: String)(f: (IMain, ByteArrayOutputStream) => Unit) = this.synchronized {
+  def scalaInterpreter(channel: String)(f: (IMain, ByteArrayOutputStream) => String) = this.synchronized {
     val si = scalaInt.getOrElseUpdate(channel, {
       val settings = new scala.tools.nsc.Settings(null)
       settings.usejavacp.value = true
@@ -165,7 +165,7 @@ object Multibottest extends PircBot {
 
   val jrubyInt = scala.collection.mutable.Map[String, (Ruby, ManyVarsDynamicScope)]()
 
-  def jrubyInterpreter(channel: String)(f: (Ruby, ManyVarsDynamicScope, ByteArrayOutputStream) => Unit) = this.synchronized {
+  def jrubyInterpreter(channel: String)(f: (Ruby, ManyVarsDynamicScope, ByteArrayOutputStream) => String) = this.synchronized {
     val (jr, sc) = jrubyInt.getOrElseUpdate(channel, {
       val config = new RubyInstanceConfig
       config setOutput conOutStream
@@ -191,7 +191,10 @@ object Multibottest extends PircBot {
 
   var pythonSession = ""
 
-  def sendLines(channel: String, message: String) = message split ("\n") filter (!_.isEmpty) take NUMLINES foreach (m => sendMessage(channel, " " + (if (!m.isEmpty && m.charAt(0) == 13) m.substring(1) else m)))
+  def sendLines(channel: String, message: String) = {
+    println(message)
+    message split ("\n") filter (!_.isEmpty) take NUMLINES foreach (m => sendMessage(channel, " " + (if (!m.isEmpty && m.charAt(0) == 13) m.substring(1) else m)))
+  }
 
   def serve(implicit msg: Msg): Unit = msg.message match {
     case Cmd(BOTMSG :: m :: Nil) if ADMINS contains msg.sender => m match {
@@ -209,23 +212,21 @@ object Multibottest extends PircBot {
     case "@bot" | "@bots" => sendMessage(msg.channel, ":)")
     case "@help" => sendMessage(msg.channel, "(!) scala (!reset|type|scalex), (%) ruby (%reset), (,) clojure, (>>) haskell, (^) python, (&) javascript, (##) groovy, (<prefix>paste url), lambdabot relay (" + !LAMBDABOTIGNORE.contains(msg.channel) + "), url: https://github.com/OlegYch/multibot")
 
-    case Cmd("!" :: m :: Nil) => scalaInterpreter(msg.channel) {
-      (si, cout) =>
-        import scala.tools.nsc.interpreter.Results._
-        sendLines(msg.channel, (si interpret m match {
-          case Success => cout.toString.replaceAll("(?m:^res[0-9]+: )", "") // + "\n" + iout.toString.replaceAll("(?m:^res[0-9]+: )", "")
-          case Error => cout.toString.replaceAll("^<console>:[0-9]+: ", "")
-          case Incomplete => "error: unexpected EOF found, incomplete expression"
-        }))
-      //.split("\n") take NUMLINES foreach (m => sendMessage(msg.channel, " " + (if (m.charAt(0) == 13) m.substring(1) else m)))
-    }
+    case Cmd("!" :: m :: Nil) => sendLines(msg.channel, scalaInterpreter(msg.channel) { (si, cout) =>
+      import scala.tools.nsc.interpreter.Results._
+      si interpret m match {
+        case Success => cout.toString.replaceAll("(?m:^res[0-9]+: )", "") // + "\n" + iout.toString.replaceAll("(?m:^res[0-9]+: )", "")
+        case Error => cout.toString.replaceAll("^<console>:[0-9]+: ", "")
+        case Incomplete => "error: unexpected EOF found, incomplete expression"
+      }
+    })
 
     case PasteCmd(cmd, m) => // Http(url(m) >- {source => serve(msg.copy(message = "! " + source))})
       val conOut = new ByteArrayOutputStream
       (new Http with NoLogging)(url(m) >>> new PrintStream(conOut))
       serve(msg.copy(message = cmd + " " + conOut))
 
-    case Cmd("!type" :: m :: Nil) => scalaInterpreter(msg.channel)((si, cout) => sendMessage(msg.channel, si.typeOfExpression(m).directObjectString))
+    case Cmd("!type" :: m :: Nil) => sendMessage(msg.channel, scalaInterpreter(msg.channel)((si, cout) => si.typeOfExpression(m).directObjectString))
     case "!reset" => scalaInt -= msg.channel
     case "!reset-all" => scalaInt.clear
 
@@ -294,16 +295,15 @@ object Multibottest extends PircBot {
     case "%reset" => jrubyInt -= msg.channel
     case "%reset-all" => jrubyInt.clear
 
-    case Cmd("%" :: m :: Nil) => jrubyInterpreter(msg.channel) {
-      (jr, sc, cout) =>
+    case Cmd("%" :: m :: Nil) => sendLines(msg.channel, jrubyInterpreter(msg.channel) { (jr, sc, cout) =>
         try {
           val result = jr.evalScriptlet("# coding: utf-8\n" + m, sc).toString
           sendLines(msg.channel, cout.toString)
-          sendLines(msg.channel, result.toString)
+          result.toString
         } catch {
-          case e: Exception => sendMessage(msg.channel, e.getMessage)
+          case e: Exception => e.getMessage
         }
-    }
+    })
 
     case Cmd("&" :: m :: Nil) =>
       val src = """

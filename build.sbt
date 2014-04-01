@@ -4,7 +4,7 @@ name := "multibot"
 
 version := "1.0"
 
-scalaVersion := "2.10.4-RC3"
+scalaVersion := "2.10.4"
 
 libraryDependencies ++= {
   val scalazVersion = "7.1.0-SNAPSHOT"

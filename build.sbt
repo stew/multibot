@@ -9,7 +9,7 @@ scalaVersion := "2.10.4"
 libraryDependencies ++= {
   val scalazVersion = "7.1.0-SNAPSHOT"
   val scalazContribVersion = "0.2-SNAPSHOT"
-  val shapelessContribVersion = "0.2-SNAPSHOT"
+  val shapelessContribVersion = "0.3-SNAPSHOT"
   Seq(
     "org.typelevel" %% "scalaz-contrib-210" % scalazContribVersion,
     "org.typelevel" %% "scalaz-contrib-validation" % scalazContribVersion,

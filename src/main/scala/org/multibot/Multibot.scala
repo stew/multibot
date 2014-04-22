@@ -210,7 +210,7 @@ object Multibottest extends PircBot {
     // case "@listchans" => sendMessage(msg.channel, getChannels mkString " ")
 
     case "@bot" | "@bots" => sendMessage(msg.channel, ":)")
-    case "@help" => sendMessage(msg.channel, "(!) scala (!reset|type|scalex), (%) ruby (%reset), (,) clojure, (>>) haskell, (^) python, (&) javascript, (##) groovy, (<prefix>paste url), lambdabot relay (" + !LAMBDABOTIGNORE.contains(msg.channel) + "), url: https://github.com/OlegYch/multibot")
+    case "@help" => sendMessage(msg.channel, "(!) scala (!reset|type|scalex), (i>) idris, (%) ruby (%reset), (,) clojure, (>>) haskell, (^) python, (&) javascript, (##) groovy, (<prefix>paste url), lambdabot relay (" + !LAMBDABOTIGNORE.contains(msg.channel) + "), url: https://github.com/OlegYch/multibot")
 
     case Cmd("!" :: m :: Nil) => sendLines(msg.channel, scalaInterpreter(msg.channel) { (si, cout) =>
       import scala.tools.nsc.interpreter.Results._

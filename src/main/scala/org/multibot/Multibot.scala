@@ -8,7 +8,7 @@ import org.json4s.JsonAST._
 import org.json4s.JsonDSL._
 
 import java.io.{PrintStream, ByteArrayOutputStream}
-import com.google.common.cache.{CacheLoader, CacheBuilder}
+import com.google.common.cache.{RemovalNotification, RemovalListener, CacheLoader, CacheBuilder}
 import java.util.concurrent.TimeUnit
 
 object Multibottest extends PircBot {
@@ -38,12 +38,13 @@ object Multibottest extends PircBot {
       sys.exit(-1)
   }
 
+  val channels = if (PRODUCTION)
+    List("#clojure.pl", "#scala.pl", "#jruby", "#ruby.pl", "#rubyonrails.pl", "#scala", "#scalaz", "#scala-fr", "#lift", "#playframework", "#bostonpython", "#fp-in-scala", "#CourseraProgfun", "#shapeless", "#akka", "#sbt")
+  else
+    List("#multibottest", "#multibottest2")
+
   def connect() {
     connect("irc.freenode.net")
-    val channels = if (PRODUCTION)
-      List("#clojure.pl", "#scala.pl", "#jruby", "#ruby.pl", "#rubyonrails.pl", "#scala", "#scalaz", "#scala-fr", "#lift", "#playframework", "#bostonpython", "#fp-in-scala", "#CourseraProgfun", "#shapeless", "#akka", "#sbt")
-    else
-      List("#multibottest", "#multibottest2")
 
     channels foreach joinChannel
   }
@@ -78,6 +79,9 @@ object Multibottest extends PircBot {
         }
       }
       super.handleLine(line)
+      scalaInt.cleanUp()
+      jrubyInt.cleanUp()
+      println(s"memory free ${Runtime.getRuntime.freeMemory() / 1024 / 1024} of ${Runtime.getRuntime.totalMemory() / 1024 / 1024}")
     } catch {
       case e: Exception => throw e
       case e: Throwable => e.printStackTrace(); sys.exit(-1)
@@ -138,7 +142,7 @@ object Multibottest extends PircBot {
 
   import scala.tools.nsc.interpreter.IMain
 
-  val scalaInt = CacheBuilder.newBuilder().expireAfterAccess(1, TimeUnit.HOURS).build(new CacheLoader[String, IMain] {
+  val scalaInt = interpreterCache(new CacheLoader[String, IMain] {
     override def load(key: String) = {
       val settings = new scala.tools.nsc.Settings(null)
       //todo filter out warnings from previous lines
@@ -166,7 +170,7 @@ object Multibottest extends PircBot {
   import org.jruby.{RubyInstanceConfig, Ruby}
   import org.jruby.runtime.scope.ManyVarsDynamicScope
 
-  val jrubyInt = CacheBuilder.newBuilder().expireAfterAccess(1, TimeUnit.HOURS).build(new CacheLoader[String, (Ruby, ManyVarsDynamicScope)] {
+  val jrubyInt = interpreterCache(new CacheLoader[String, (Ruby, ManyVarsDynamicScope)] {
     override def load(key: String) = {
       val config = new RubyInstanceConfig
       config setOutput conOutStream
@@ -180,6 +184,11 @@ object Multibottest extends PircBot {
     }
   })
 
+  def interpreterCache[K <: AnyRef, V <: AnyRef](loader: CacheLoader[K, V]) = {
+    CacheBuilder.newBuilder().expireAfterAccess(1, TimeUnit.HOURS).softValues().maximumSize(channels.size + 5).removalListener(new RemovalListener[K, V] {
+      override def onRemoval(notification: RemovalNotification[K, V]) = println(s"expired $notification")
+    }).build(loader)
+  }
   def jrubyInterpreter(channel: String)(f: (Ruby, ManyVarsDynamicScope, ByteArrayOutputStream) => String) = this.synchronized {
     val (jr, sc) = jrubyInt.get(channel)
     ScriptSecurityManager.hardenPermissions(captureOutput {

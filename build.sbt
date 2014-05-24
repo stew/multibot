@@ -4,31 +4,27 @@ name := "multibot"
 
 version := "1.0"
 
-scalaVersion := "2.10.4"
+scalaVersion := "2.11.1"
 
 libraryDependencies ++= {
-  val scalazVersion = "7.1.0-SNAPSHOT"
-  val scalazContribVersion = "0.2-SNAPSHOT"
-  val shapelessContribVersion = "0.3-SNAPSHOT"
+  val scalazVersion = "7.1.0-M7"
+  val scalazStreamVersion = "0.4.1a"
+  val shapelessVersion = "2.0.0"
+  val spireVersion = "0.7.4"
   Seq(
-//    "org.typelevel" %% "scalaz-contrib-210" % scalazContribVersion,
-//    "org.typelevel" %% "scalaz-contrib-validation" % scalazContribVersion,
-//    "org.typelevel" %% "scalaz-contrib-undo" % scalazContribVersion,
-//    "org.typelevel" %% "scalaz-nscala-time" % scalazContribVersion,
-//    "org.typelevel" %% "scalaz-spire" % scalazContribVersion,
-    "org.typelevel" %% "shapeless-scalacheck" % shapelessContribVersion,
-    "org.typelevel" %% "shapeless-spire" % shapelessContribVersion,
-//    "org.typelevel" %% "shapeless-scalaz" % shapelessContribVersion,
     "org.scalaz" %% "scalaz-iteratee" % scalazVersion,
     "org.scalaz" %% "scalaz-effect" % scalazVersion,
     "org.scalaz" %% "scalaz-typelevel" % scalazVersion,
     "org.scalaz" %% "scalaz-scalacheck-binding" % scalazVersion,
     "org.scalaz" %% "scalaz-concurrent" % scalazVersion,
+    "com.chuusai" %% "shapeless" % shapelessVersion,
+    "org.spire-math" %% "spire" % spireVersion,
+//    "org.scalaz.stream" %% "scalaz-stream" % scalazStreamVersion,
     "pircbot" % "pircbot" % "1.5.0",
     "org.scala-lang" % "scala-compiler" % scalaVersion.value,
     "org.scala-lang" % "scala-reflect" % scalaVersion.value,
-    "net.databinder" %% "dispatch-http" % "0.8.8",
-    "org.json4s" %% "json4s-native" % "3.1.0",
+    "net.databinder" %% "dispatch-http" % "0.8.10",
+    "org.json4s" %% "json4s-native" % "3.2.10",
     "org.jruby" % "jruby-complete" % "1.7.10"
   )
 }
@@ -50,5 +46,15 @@ scalacOptions ++= Seq("-feature", "-language:_", "-deprecation", "-Xexperimental
 //}
 
 resolvers += "Sonatype Nexus Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots"
+
+resolvers += "Scalaz Bintray Repo" at "http://dl.bintray.com/scalaz/releases"
+
+resolvers += "linter" at "http://hairyfotr.github.io/linteRepo/releases"
+
+addCompilerPlugin("com.foursquare.lint" %% "linter" % "0.1.3")
+
+addCompilerPlugin("org.brianmckenna" %% "wartremover" % "0.10")
+
+scalacOptions in (Compile, compile) += "-P:wartremover:only-warn-traverser:org.brianmckenna.wartremover.warts.Unsafe"
 
 com.typesafe.sbt.SbtStartScript.startScriptForClassesSettings

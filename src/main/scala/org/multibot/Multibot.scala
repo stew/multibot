@@ -1,7 +1,7 @@
 package org.multibot
 
 import org.jibble.pircbot.{NickAlreadyInUseException, PircBot}
-import dispatch._
+import dispatch.classic._
 import org.json4s.native.JsonMethods._
 import org.json4s.native._
 import org.json4s.JsonAST._
@@ -149,7 +149,7 @@ object Multibottest extends PircBot {
 
       si.quietImport("scalaz._")
       si.quietImport("Scalaz._")
-      si.quietImport("Tags._")
+
       si.quietImport("reflect.runtime.universe.reify")
 
       si.quietImport("org.scalacheck.Prop._")

@@ -1,5 +1,3 @@
-import sbtassembly.Plugin.AssemblyKeys
-
 name := "multibot"
 
 version := "1.0"
@@ -29,21 +27,9 @@ libraryDependencies ++= {
   )
 }
 
-
-// autoCompilerPlugins := true
-
-AssemblyKeys.assembleArtifact in packageBin := false
-
-seq(sbtassembly.Plugin.assemblySettings: _*)
+autoCompilerPlugins := true
 
 scalacOptions ++= Seq("-feature", "-language:_", "-deprecation", "-Xexperimental")
-
-// mergeStrategy in assembly := (e => MergeStrategy.first)
-
-//mergeStrategy in assembly := {
-//    case s if s.startsWith("org/joda") => MergeStrategy.discard
-//    case _ => MergeStrategy.deduplicate
-//}
 
 resolvers += "Sonatype Nexus Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots"
 
@@ -53,8 +39,15 @@ resolvers += "linter" at "http://hairyfotr.github.io/linteRepo/releases"
 
 addCompilerPlugin("com.foursquare.lint" %% "linter" % "0.1.3")
 
+libraryDependencies += "com.foursquare.lint" %% "linter" % "0.1.3"
+
+//scalacOptions += "-P:linter:disable:OLOLOUseHypot+CloseSourceFile+OptionOfOption"
+
 addCompilerPlugin("org.brianmckenna" %% "wartremover" % "0.10")
 
-scalacOptions in (Compile, compile) += "-P:wartremover:only-warn-traverser:org.brianmckenna.wartremover.warts.Unsafe"
+libraryDependencies += "org.brianmckenna" %% "wartremover" % "0.10"
+
+//scalacOptions += "-P:wartremover:traverser:OLOLOorg.brianmckenna.wartremover.warts.Unsafe"
+scalacOptions += "-P:wartremover:only-warn-traverser:org.brianmckenna.wartremover.warts.Unsafe"
 
 com.typesafe.sbt.SbtStartScript.startScriptForClassesSettings

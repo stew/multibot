@@ -1,3 +1,7 @@
+import sbt._
+import Keys._
+import sbtbuildinfo.Plugin._
+
 name := "multibot"
 
 version := "1.0"
@@ -29,7 +33,7 @@ libraryDependencies ++= {
 
 autoCompilerPlugins := true
 
-scalacOptions ++= Seq("-feature", "-language:_", "-deprecation", "-Xexperimental")
+scalacOptions ++= Seq("-feature:false", "-language:_", "-deprecation", "-Xexperimental")
 
 resolvers += "Sonatype Nexus Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots"
 
@@ -51,3 +55,11 @@ libraryDependencies += "org.brianmckenna" %% "wartremover" % "0.10"
 scalacOptions += "-P:wartremover:only-warn-traverser:org.brianmckenna.wartremover.warts.Unsafe"
 
 com.typesafe.sbt.SbtStartScript.startScriptForClassesSettings
+
+buildInfoSettings
+
+sourceGenerators in Compile <+= buildInfo
+
+buildInfoKeys := Seq[BuildInfoKey](name, version, scalaVersion, sbtVersion, scalacOptions in (Compile, compile))
+
+buildInfoPackage := "org.multibot"

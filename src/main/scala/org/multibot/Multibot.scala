@@ -141,11 +141,12 @@ object Multibottest extends PircBot {
   def scalaInterpreter(channel: String)(f: (IMain, ByteArrayOutputStream) => String) = this.synchronized {
     val si = scalaInt.getOrElseUpdate(channel, {
       val settings = new scala.tools.nsc.Settings(null)
+      //todo filter out warnings from previous lines
+//      settings.processArguments(BuildInfo.compile_scalacOptions.toList, true)
       settings.usejavacp.value = true
       settings.deprecation.value = true
       settings.feature.value = false
-      // settings.YdepMethTpes.value = true
-      val si = new IMain(settings) // { override def parentClassLoader = Thread.currentThread.getContextClassLoader }
+      val si = new IMain(settings)
 
       val imports = List("scalaz._", "Scalaz._", "reflect.runtime.universe.reify", "org.scalacheck.Prop._")
       si.beQuietDuring {

@@ -31,6 +31,8 @@ libraryDependencies ++= {
   )
 }
 
+libraryDependencies += "com.google.guava" % "guava" % "17.0"
+
 autoCompilerPlugins := true
 
 scalacOptions ++= Seq("-feature:false", "-language:_", "-deprecation", "-Xexperimental")

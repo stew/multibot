@@ -8,6 +8,8 @@ import org.json4s.JsonAST._
 import org.json4s.JsonDSL._
 
 import java.io.{PrintStream, ByteArrayOutputStream}
+import com.google.common.cache.{CacheLoader, CacheBuilder}
+import java.util.concurrent.TimeUnit
 
 object Multibottest extends PircBot {
   val PRODUCTION = Option(System getenv "multibot.production") exists (_ toBoolean)
@@ -136,13 +138,11 @@ object Multibottest extends PircBot {
 
   import scala.tools.nsc.interpreter.IMain
 
-  val scalaInt = scala.collection.mutable.Map[String, IMain]()
-
-  def scalaInterpreter(channel: String)(f: (IMain, ByteArrayOutputStream) => String) = this.synchronized {
-    val si = scalaInt.getOrElseUpdate(channel, {
+  val scalaInt = CacheBuilder.newBuilder().expireAfterAccess(1, TimeUnit.HOURS).build(new CacheLoader[String, IMain] {
+    override def load(key: String) = {
       val settings = new scala.tools.nsc.Settings(null)
       //todo filter out warnings from previous lines
-//      settings.processArguments(BuildInfo.compile_scalacOptions.toList, true)
+      //      settings.processArguments(BuildInfo.compile_scalacOptions.toList, true)
       settings.usejavacp.value = true
       settings.deprecation.value = true
       settings.feature.value = false
@@ -153,7 +153,11 @@ object Multibottest extends PircBot {
         imports.foreach(i => si.interpret(s"import $i"))
       }
       si
-    })
+    }
+  })
+
+  def scalaInterpreter(channel: String)(f: (IMain, ByteArrayOutputStream) => String) = this.synchronized {
+    val si = scalaInt.get(channel)
     ScriptSecurityManager.hardenPermissions(captureOutput {
       f(si, conOut)
     })
@@ -162,10 +166,8 @@ object Multibottest extends PircBot {
   import org.jruby.{RubyInstanceConfig, Ruby}
   import org.jruby.runtime.scope.ManyVarsDynamicScope
 
-  val jrubyInt = scala.collection.mutable.Map[String, (Ruby, ManyVarsDynamicScope)]()
-
-  def jrubyInterpreter(channel: String)(f: (Ruby, ManyVarsDynamicScope, ByteArrayOutputStream) => String) = this.synchronized {
-    val (jr, sc) = jrubyInt.getOrElseUpdate(channel, {
+  val jrubyInt = CacheBuilder.newBuilder().expireAfterAccess(1, TimeUnit.HOURS).build(new CacheLoader[String, (Ruby, ManyVarsDynamicScope)] {
+    override def load(key: String) = {
       val config = new RubyInstanceConfig
       config setOutput conOutStream
       config setError conOutStream
@@ -175,18 +177,15 @@ object Multibottest extends PircBot {
       val jruby = Ruby.newInstance(config)
       val scope = new ManyVarsDynamicScope(jruby.getStaticScopeFactory.newEvalScope(jruby.getCurrentContext.getCurrentScope.getStaticScope), jruby.getCurrentContext.getCurrentScope)
       (jruby, scope)
-    })
+    }
+  })
+
+  def jrubyInterpreter(channel: String)(f: (Ruby, ManyVarsDynamicScope, ByteArrayOutputStream) => String) = this.synchronized {
+    val (jr, sc) = jrubyInt.get(channel)
     ScriptSecurityManager.hardenPermissions(captureOutput {
       f(jr, sc, conOut)
     })
   }
-
-  //import org.python.util.PythonInterpreter
-  //val jythonInt = scala.collection.mutable.Map[String, PythonInterpreter]()
-  //def jythonInterpreter(channel: String)(f: (PythonInterpreter, ByteArrayOutputStream) => Unit) = this.synchronized {
-  //    val jy = jythonInt.getOrElseUpdate(channel, new PythonInterpreter())
-  //    captureOutput{f(jy, conOut)}
-  //}
 
   var pythonSession = ""
 
@@ -226,8 +225,8 @@ object Multibottest extends PircBot {
       serve(msg.copy(message = cmd + " " + conOut))
 
     case Cmd("!type" :: m :: Nil) => sendMessage(msg.channel, scalaInterpreter(msg.channel)((si, cout) => si.typeOfExpression(m).directObjectString))
-    case "!reset" => scalaInt -= msg.channel
-    case "!reset-all" => scalaInt.clear
+    case "!reset" => scalaInt invalidate msg.channel
+    case "!reset-all" => scalaInt.invalidateAll()
 
     case Cmd("!scalex" :: m :: Nil) => respondJSON(:/("api.scalex.org") <<? Map("q" -> m)) {
       json =>
@@ -291,8 +290,8 @@ object Multibottest extends PircBot {
       case e => Some("unexpected: " + e)
     }
 
-    case "%reset" => jrubyInt -= msg.channel
-    case "%reset-all" => jrubyInt.clear
+    case "%reset" => jrubyInt invalidate msg.channel
+    case "%reset-all" => jrubyInt.invalidateAll()
 
     case Cmd("%" :: m :: Nil) => sendLines(msg.channel, jrubyInterpreter(msg.channel) { (jr, sc, cout) =>
         try {

@@ -122,16 +122,16 @@ object Multibottest extends PircBot {
   def captureOutput[T](block: => T): T = try {
     System setOut conOutStream
     System setErr conOutStream
-    Console setOut conOutStream
-    Console setErr conOutStream
-    block
+    (Console withOut conOutStream) {
+      (Console withErr conOutStream) {
+        block
+      }
+    }
   } finally {
     System setOut stdOut
     System setErr stdErr
-    Console setOut conStdOut
-    Console setErr conStdErr
-    conOut.flush
-    conOut.reset
+    conOut.flush()
+    conOut.reset()
   }
 
   import scala.tools.nsc.interpreter.IMain
@@ -147,12 +147,10 @@ object Multibottest extends PircBot {
       // settings.YdepMethTpes.value = true
       val si = new IMain(settings) // { override def parentClassLoader = Thread.currentThread.getContextClassLoader }
 
-      si.quietImport("scalaz._")
-      si.quietImport("Scalaz._")
-
-      si.quietImport("reflect.runtime.universe.reify")
-
-      si.quietImport("org.scalacheck.Prop._")
+      val imports = List("scalaz._", "Scalaz._", "reflect.runtime.universe.reify", "org.scalacheck.Prop._")
+      si.beQuietDuring {
+        imports.foreach(i => si.interpret(s"import $i"))
+      }
       si
     })
     ScriptSecurityManager.hardenPermissions(captureOutput {

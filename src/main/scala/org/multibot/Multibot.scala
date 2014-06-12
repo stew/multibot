@@ -230,7 +230,7 @@ object Multibottest extends PircBot {
 
     case PasteCmd(cmd, m) => // Http(url(m) >- {source => serve(msg.copy(message = "! " + source))})
       val conOut = new ByteArrayOutputStream
-      (new Http with NoLogging)(url(m) >>> new PrintStream(conOut))
+      createHttpClient(url(m) >>> new PrintStream(conOut))
       serve(msg.copy(message = cmd + " " + conOut))
 
     case Cmd("!type" :: m :: Nil) => sendMessage(msg.channel, scalaInterpreter(msg.channel)((si, cout) => si.typeOfExpression(m).directObjectString))
@@ -330,7 +330,7 @@ object Multibottest extends PircBot {
 
       respondJSON((:/("jsapp.us") / "ajax" << compact(render(("actions", List(("action", "test") ~("code", src) ~("randToken", "3901") ~("fileName", ""))) ~("user", "null") ~("token", "null"))))) {
         case JObject(JField("user", JNull) :: JField("data", JArray(JString(data) :: Nil)) :: Nil) => var s: String = "";
-          (new Http with NoLogging)(url(data) >- {
+          createHttpClient(url(data) >- {
             source => s = source
           });
           Some(s)
@@ -415,6 +415,21 @@ object Multibottest extends PircBot {
         }
     } // non empty lines
 
-    (new Http with NoLogging)(handler) //  with thread.Safety
+    createHttpClient(handler)
+  }
+
+  def createHttpClient = new Http with NoLogging {
+    override def make_client = new ConfiguredHttpClient(credentials) {
+      override def createHttpParams() = {
+        val params = super.createHttpParams()
+        import org.apache.http.params.HttpConnectionParams
+
+        import scala.concurrent.duration._
+        val timeout = 10.seconds.toMillis.toInt
+        HttpConnectionParams.setConnectionTimeout(params, timeout)
+        HttpConnectionParams.setSoTimeout(params, timeout)
+        params
+      }
+    }
   }
 }

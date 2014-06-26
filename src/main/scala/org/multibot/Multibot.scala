@@ -284,7 +284,7 @@ object Multibottest extends PircBot {
         :: JField("files", _)
         :: JField("type", JString(xtype))
         :: Nil))
-        :: Nil) => Some(s"$result :: $xtype" + out.mkString("\n"))
+        :: Nil) => Some(s"$result :: $xtype " + out.collect { case JString(s) => s}.mkString("\n", "\n", ""))
       case JObject(JField("error", JString(error)) :: Nil) => Some(error)
       case e => Some("unexpected: " + e)
     }

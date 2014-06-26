@@ -62,6 +62,6 @@ buildInfoSettings
 
 sourceGenerators in Compile <+= buildInfo
 
-buildInfoKeys := Seq[BuildInfoKey](name, version, scalaVersion, sbtVersion, scalacOptions in (Compile, compile))
+buildInfoKeys := Seq[BuildInfoKey](name, version, scalaVersion, sbtVersion, scalacOptions in (Compile, compile), libraryDependencies in (Compile, compile))
 
 buildInfoPackage := "org.multibot"

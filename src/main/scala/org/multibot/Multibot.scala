@@ -39,7 +39,7 @@ object Multibottest extends PircBot {
   }
 
   val channels = if (PRODUCTION)
-    List("#clojure.pl", "#scala.pl", "#jruby", "#ruby.pl", "#rubyonrails.pl", "#scala", "#scalaz", "#scala-fr", "#lift", "#playframework", "#bostonpython", "#fp-in-scala", "#CourseraProgfun", "#shapeless", "#akka", "#sbt")
+    List("#clojure.pl", "#scala.pl", "#jruby", "#ruby.pl", "#rubyonrails.pl", "#scala", "#scalaz", "#scala-fr", "#lift", "#playframework", "#bostonpython", "#fp-in-scala", "#CourseraProgfun", "#shapeless", "#akka", "#sbt", "#scala-monocle")
   else
     List("#multibottest", "#multibottest2")
 
@@ -152,7 +152,7 @@ object Multibottest extends PircBot {
       settings.feature.value = false
       val si = new IMain(settings)
 
-      val imports = List("scalaz._", "Scalaz._", "reflect.runtime.universe.reify", "org.scalacheck.Prop._")
+      val imports = List("scalaz._", "Scalaz._", "reflect.runtime.universe.reify", "org.scalacheck.Prop._", "monocle.syntax._", "monocle.Macro._")
       si.beQuietDuring {
         imports.foreach(i => si.interpret(s"import $i"))
       }

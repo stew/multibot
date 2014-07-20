@@ -12,6 +12,7 @@ libraryDependencies ++= {
   val scalazVersion = "7.1.0-M7"
   val scalazStreamVersion = "0.4.1a"
   val shapelessVersion = "2.0.0"
+  val monocleVersion = "0.4.0"
   val spireVersion = "0.7.4"
   Seq(
     "org.scalaz" %% "scalaz-iteratee" % scalazVersion,
@@ -20,6 +21,9 @@ libraryDependencies ++= {
     "org.scalaz" %% "scalaz-scalacheck-binding" % scalazVersion,
     "org.scalaz" %% "scalaz-concurrent" % scalazVersion,
     "com.chuusai" %% "shapeless" % shapelessVersion,
+    "com.github.julien-truffaut" %% "monocle-generic" % monocleVersion,
+    "com.github.julien-truffaut" %% "monocle-law" % monocleVersion,
+    "com.github.julien-truffaut" %% "monocle-macro" % monocleVersion,
     "org.spire-math" %% "spire" % spireVersion,
 //    "org.scalaz.stream" %% "scalaz-stream" % scalazStreamVersion,
     "pircbot" % "pircbot" % "1.5.0",

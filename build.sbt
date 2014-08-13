@@ -1,19 +1,21 @@
+import sbt.Keys._
 import sbt._
-import Keys._
 import sbtbuildinfo.Plugin._
 
 name := "multibot"
 
 version := "1.0"
 
-scalaVersion := "2.11.1"
+scalaVersion := "2.11.2"
+
+resolvers += "Scalaz Bintray Repo" at "http://dl.bintray.com/scalaz/releases"
 
 libraryDependencies ++= {
-  val scalazVersion = "7.1.0-M7"
-  val scalazStreamVersion = "0.4.1a"
+  val scalazVersion = "7.1.0"
+  val scalazStreamVersion = "0.5a"
   val shapelessVersion = "2.0.0"
-  val monocleVersion = "0.4.0"
-  val spireVersion = "0.7.4"
+  val monocleVersion = "0.5.0"
+  val spireVersion = "0.8.2"
   Seq(
     "org.scalaz" %% "scalaz-iteratee" % scalazVersion,
     "org.scalaz" %% "scalaz-effect" % scalazVersion,
@@ -25,17 +27,19 @@ libraryDependencies ++= {
     "com.github.julien-truffaut" %% "monocle-law" % monocleVersion,
     "com.github.julien-truffaut" %% "monocle-macro" % monocleVersion,
     "org.spire-math" %% "spire" % spireVersion,
-//    "org.scalaz.stream" %% "scalaz-stream" % scalazStreamVersion,
-    "pircbot" % "pircbot" % "1.5.0",
-    "org.scala-lang" % "scala-compiler" % scalaVersion.value,
-    "org.scala-lang" % "scala-reflect" % scalaVersion.value,
-    "net.databinder" %% "dispatch-http" % "0.8.10",
-    "org.json4s" %% "json4s-native" % "3.2.10",
-    "org.jruby" % "jruby-complete" % "1.7.10"
+    "org.scalaz.stream" %% "scalaz-stream" % scalazStreamVersion
   )
 }
 
-libraryDependencies += "com.google.guava" % "guava" % "17.0"
+libraryDependencies ++= Seq(
+  "pircbot" % "pircbot" % "1.5.0",
+  "org.scala-lang" % "scala-compiler" % scalaVersion.value,
+  "org.scala-lang" % "scala-reflect" % scalaVersion.value,
+  "net.databinder" %% "dispatch-http" % "0.8.10",
+  "org.json4s" %% "json4s-native" % "3.2.10",
+  "org.jruby" % "jruby-complete" % "1.7.10",
+  "com.google.guava" % "guava" % "17.0"
+)
 
 autoCompilerPlugins := true
 
@@ -66,6 +70,6 @@ buildInfoSettings
 
 sourceGenerators in Compile <+= buildInfo
 
-buildInfoKeys := Seq[BuildInfoKey](name, version, scalaVersion, sbtVersion, scalacOptions in (Compile, compile), libraryDependencies in (Compile, compile))
+buildInfoKeys := Seq[BuildInfoKey](name, version, scalaVersion, sbtVersion, scalacOptions in(Compile, compile), libraryDependencies in(Compile, compile))
 
 buildInfoPackage := "org.multibot"

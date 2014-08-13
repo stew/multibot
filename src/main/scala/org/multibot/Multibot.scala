@@ -69,7 +69,7 @@ object Multibottest extends PircBot {
     val timeout = Promise[Boolean]()
     try {
       Future {
-        scala.concurrent.blocking(Thread.sleep(1000 * 30))
+        scala.concurrent.blocking(Thread.sleep(1000 * 60))
         timeout.tryComplete(Success(true))
       }
       timeout.future.foreach { timeout =>

@@ -64,7 +64,7 @@ object ScriptSecurityManager extends SecurityManager {
     def allowedClass(trace: Array[StackTraceElement]) = trace.exists { element =>
       val name = element.getFileName
       //todo apply more robust checks
-      List("BytecodeWriters.scala", "Settings.scala", "PathResolver.scala", "JavaMirrors.scala", "ForkJoinPool.java", "Using.scala")
+      List("BytecodeWriters.scala", "Settings.scala", "PathResolver.scala", "JavaMirrors.scala", "ForkJoinPool.java", "Using.scala", "TimeZone.java")
         .contains(name)
     }
 

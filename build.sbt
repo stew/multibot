@@ -73,3 +73,7 @@ sourceGenerators in Compile <+= buildInfo
 buildInfoKeys := Seq[BuildInfoKey](name, version, scalaVersion, sbtVersion, scalacOptions in(Compile, compile), libraryDependencies in(Compile, compile))
 
 buildInfoPackage := "org.multibot"
+
+resolvers += "bintray/non" at "http://dl.bintray.com/non/maven"
+
+addCompilerPlugin("org.spire-math" %% "kind-projector" % "0.5.2")

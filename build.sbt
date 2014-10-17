@@ -14,7 +14,7 @@ libraryDependencies ++= {
   val scalazVersion = "7.1.0"
   val scalazStreamVersion = "0.5a"
   val shapelessVersion = "2.0.0"
-  val monocleVersion = "0.5.0"
+  val monocleVersion = "0.5.1"
   val spireVersion = "0.8.2"
   Seq(
     "org.scalaz" %% "scalaz-iteratee" % scalazVersion,
@@ -38,7 +38,7 @@ libraryDependencies ++= Seq(
   "net.databinder" %% "dispatch-http" % "0.8.10",
   "org.json4s" %% "json4s-native" % "3.2.10",
   "org.jruby" % "jruby-complete" % "1.7.10",
-  "com.google.guava" % "guava" % "17.0"
+  "com.google.guava" % "guava" % "18.0"
 )
 
 autoCompilerPlugins := true
@@ -57,9 +57,9 @@ libraryDependencies += "com.foursquare.lint" %% "linter" % "0.1.3"
 
 //scalacOptions += "-P:linter:disable:OLOLOUseHypot+CloseSourceFile+OptionOfOption"
 
-addCompilerPlugin("org.brianmckenna" %% "wartremover" % "0.10")
+addCompilerPlugin("org.brianmckenna" %% "wartremover" % "0.11")
 
-libraryDependencies += "org.brianmckenna" %% "wartremover" % "0.10"
+libraryDependencies += "org.brianmckenna" %% "wartremover" % "0.11"
 
 //scalacOptions += "-P:wartremover:traverser:OLOLOorg.brianmckenna.wartremover.warts.Unsafe"
 scalacOptions += "-P:wartremover:only-warn-traverser:org.brianmckenna.wartremover.warts.Unsafe"

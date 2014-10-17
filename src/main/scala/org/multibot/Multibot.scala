@@ -18,7 +18,7 @@ object Multibottest extends PircBot {
   val NUMLINES = 5
   val INNUMLINES = 8
   val LAMBDABOT = "lambdabot"
-  val LAMBDABOTIGNORE = Set("#scala", "#scalaz")
+  val LAMBDABOTIGNORE = Set("#scala", "#scalaz", "##scalaz")
   val ADMINS = List("imeredith", "lopex", "tpolecat", "OlegYch")
 
   def main(args: Array[String]) {
@@ -39,7 +39,7 @@ object Multibottest extends PircBot {
   }
 
   val channels = if (PRODUCTION)
-    List("#clojure.pl", "#scala.pl", "#jruby", "#ruby.pl", "#rubyonrails.pl", "#scala", "#scalaz", "#scala-fr", "#lift", "#playframework", "#bostonpython", "#fp-in-scala", "#CourseraProgfun", "#shapeless", "#akka", "#sbt", "#scala-monocle")
+    List("#clojure.pl", "#scala.pl", "#jruby", "#ruby.pl", "#rubyonrails.pl", "#scala", "#scalaz", "#scala-fr", "#lift", "#playframework", "#bostonpython", "#fp-in-scala", "#CourseraProgfun", "#shapeless", "#akka", "#sbt", "#scala-monocle", "##scalaz")
   else
     List("#multibottest", "#multibottest2")
 
@@ -146,7 +146,7 @@ object Multibottest extends PircBot {
     override def load(key: String) = {
       val settings = new scala.tools.nsc.Settings(null)
       //todo filter out warnings from previous lines
-      //      settings.processArguments(BuildInfo.compile_scalacOptions.toList, true)
+            settings.processArguments(BuildInfo.compile_scalacOptions.toList, true)
       settings.usejavacp.value = true
       settings.deprecation.value = true
       settings.feature.value = false

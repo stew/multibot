@@ -77,3 +77,5 @@ buildInfoPackage := "org.multibot"
 resolvers += "bintray/non" at "http://dl.bintray.com/non/maven"
 
 addCompilerPlugin("org.spire-math" %% "kind-projector" % "0.5.2")
+
+libraryDependencies += "org.spire-math" %% "kind-projector" % "0.5.2"

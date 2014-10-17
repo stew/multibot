@@ -145,8 +145,11 @@ object Multibottest extends PircBot {
   val scalaInt = interpreterCache(new CacheLoader[String, IMain] {
     override def load(key: String) = {
       val settings = new scala.tools.nsc.Settings(null)
-      //todo filter out warnings from previous lines
-            settings.processArguments(BuildInfo.compile_scalacOptions.toList, true)
+      val classpath = sys.props("java.class.path").split(java.io.File.pathSeparatorChar).toList
+      println(classpath)
+      val plugins = classpath.map(jar => s"-Xplugin:$jar")
+      val pluginsOptions = plugins ++ List("-P:wartremover:only-warn-traverser:org.brianmckenna.wartremover.warts.Unsafe")
+      settings.processArguments(pluginsOptions, true)
       settings.usejavacp.value = true
       settings.deprecation.value = true
       settings.feature.value = false

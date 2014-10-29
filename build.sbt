@@ -59,10 +59,9 @@ libraryDependencies += "com.foursquare.lint" %% "linter" % "0.1.3"
 
 addCompilerPlugin("org.brianmckenna" %% "wartremover" % "0.11")
 
-libraryDependencies += "org.brianmckenna" %% "wartremover" % "0.11"
-
-//scalacOptions += "-P:wartremover:traverser:OLOLOorg.brianmckenna.wartremover.warts.Unsafe"
-scalacOptions += "-P:wartremover:only-warn-traverser:org.brianmckenna.wartremover.warts.Unsafe"
+//libraryDependencies += "org.brianmckenna" %% "wartremover" % "0.11"
+//
+//scalacOptions += "-P:wartremover:only-warn-traverser:org.brianmckenna.wartremover.warts.Unsafe"
 
 com.typesafe.sbt.SbtStartScript.startScriptForClassesSettings
 

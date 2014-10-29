@@ -148,7 +148,7 @@ object Multibottest extends PircBot {
       val classpath = sys.props("java.class.path").split(java.io.File.pathSeparatorChar).toList
       println(classpath)
       val plugins = classpath.map(jar => s"-Xplugin:$jar")
-      val pluginsOptions = plugins ++ List("-P:wartremover:only-warn-traverser:org.brianmckenna.wartremover.warts.Unsafe")
+      val pluginsOptions = plugins //++ List("-P:wartremover:only-warn-traverser:org.brianmckenna.wartremover.warts.Unsafe")
       settings.processArguments(pluginsOptions, true)
       settings.usejavacp.value = true
       settings.deprecation.value = true

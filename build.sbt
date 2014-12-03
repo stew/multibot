@@ -6,6 +6,14 @@ name := "multibot"
 
 version := "1.0"
 
+mainClass in Compile := Some("org.multibot.Multibottest")
+
+updateOptions := updateOptions.value.withCachedResolution(true).withLatestSnapshots(false)
+
+publishArtifact in(Compile, packageDoc) := false
+
+enablePlugins(JavaAppPackaging)
+
 scalaVersion := "2.11.4"
 
 resolvers += "Scalaz Bintray Repo" at "http://dl.bintray.com/scalaz/releases"
@@ -63,8 +71,6 @@ addCompilerPlugin("org.brianmckenna" %% "wartremover" % "0.11")
 //
 //scalacOptions += "-P:wartremover:only-warn-traverser:org.brianmckenna.wartremover.warts.Unsafe"
 
-com.typesafe.sbt.SbtStartScript.startScriptForClassesSettings
-
 buildInfoSettings
 
 sourceGenerators in Compile <+= buildInfo
@@ -78,3 +84,4 @@ resolvers += "bintray/non" at "http://dl.bintray.com/non/maven"
 addCompilerPlugin("org.spire-math" %% "kind-projector" % "0.5.2")
 
 libraryDependencies += "org.spire-math" %% "kind-projector" % "0.5.2"
+

@@ -1,1 +1,1 @@
-worker: target/start org/multibot/Multibottest
+worker: target/universal/stage/bin/multibot

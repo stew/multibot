@@ -155,7 +155,7 @@ object Multibottest extends PircBot {
       settings.feature.value = false
       val si = new IMain(settings)
 
-      val imports = List("scalaz._", "Scalaz._", "reflect.runtime.universe.reify", "org.scalacheck.Prop._", "monocle.syntax._", "monocle.Macro._")
+      val imports = List("scalaz._", "Scalaz._", "reflect.runtime.universe.reify", "org.scalacheck.Prop._", "monocle.syntax._", "monocle.macros._")
       si.beQuietDuring {
         imports.foreach(i => si.interpret(s"import $i"))
       }

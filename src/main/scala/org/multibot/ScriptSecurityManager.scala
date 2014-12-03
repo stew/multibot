@@ -1,5 +1,6 @@
 package org.multibot
 
+import java.net.NetPermission
 import java.security.{SecurityPermission, Permission}
 import java.io.{File, FilePermission}
 import java.util.PropertyPermission
@@ -51,6 +52,7 @@ object ScriptSecurityManager extends SecurityManager {
     val file = perm.isInstanceOf[FilePermission]
     val property = perm.isInstanceOf[PropertyPermission]
     val security = perm.isInstanceOf[SecurityPermission]
+    val net = perm.isInstanceOf[NetPermission]
 
     val notExistingFile = !new File(perm.getName).exists()
 
@@ -69,7 +71,9 @@ object ScriptSecurityManager extends SecurityManager {
     }
 
     val allow = readMissingFile || readClass || (read && !file) || allowedMethods || getenv ||
-      (property && readWrite) || (security && perm.getName.startsWith("getProperty.")) || allowedClass(new Throwable().getStackTrace)
+      (property && readWrite) || (security && perm.getName.startsWith("getProperty.")) ||
+      (net && perm.getName.startsWith("specifyStreamHandler")) ||
+      allowedClass(new Throwable().getStackTrace)
     if (!allow) {
       val exception = new SecurityException(perm.toString)
       exception.printStackTrace()

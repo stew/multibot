@@ -6,7 +6,7 @@ name := "multibot"
 
 version := "1.0"
 
-scalaVersion := "2.11.2"
+scalaVersion := "2.11.4"
 
 resolvers += "Scalaz Bintray Repo" at "http://dl.bintray.com/scalaz/releases"
 
@@ -14,7 +14,7 @@ libraryDependencies ++= {
   val scalazVersion = "7.1.0"
   val scalazStreamVersion = "0.5a"
   val shapelessVersion = "2.0.0"
-  val monocleVersion = "0.5.1"
+  val monocleVersion = "1.0.0-M1"
   val spireVersion = "0.8.2"
   Seq(
     "org.scalaz" %% "scalaz-iteratee" % scalazVersion,

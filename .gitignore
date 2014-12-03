@@ -1,1 +1,6 @@
+/.idea/*
+!/.idea/codeStyleSettings.xml
+!/.idea/projectCodeStyle.xml
+!/.idea/runConfigurations
+/.idea_modules/*
 target

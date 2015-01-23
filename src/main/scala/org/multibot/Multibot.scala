@@ -18,7 +18,7 @@ object Multibottest extends PircBot {
   val NUMLINES = 5
   val INNUMLINES = 8
   val LAMBDABOT = "lambdabot"
-  val LAMBDABOTIGNORE = Set("#scala", "#scalaz", "##scalaz")
+  val LAMBDABOTIGNORE = Set("#scala", "#scalaz")
   val ADMINS = List("imeredith", "lopex", "tpolecat", "OlegYch")
 
   def main(args: Array[String]) {
@@ -39,7 +39,7 @@ object Multibottest extends PircBot {
   }
 
   val channels = if (PRODUCTION)
-    List("#clojure.pl", "#scala.pl", "#jruby", "#ruby.pl", "#rubyonrails.pl", "#scala", "#scalaz", "#scala-fr", "#lift", "#playframework", "#bostonpython", "#fp-in-scala", "#CourseraProgfun", "#shapeless", "#akka", "#sbt", "#scala-monocle", "##scalaz")
+    List("#clojure.pl", "#scala.pl", "#jruby", "#ruby.pl", "#rubyonrails.pl", "#scala", "#scalaz", "#scala-fr", "#lift", "#playframework", "#bostonpython", "#fp-in-scala", "#CourseraProgfun", "#shapeless", "#akka", "#sbt", "#scala-monocle")
   else
     List("#multibottest", "#multibottest2")
 

@@ -81,7 +81,7 @@ object Multibottest extends PircBot {
       super.handleLine(line)
       scalaInt.cleanUp()
       jrubyInt.cleanUp()
-      println(s"memory free ${Runtime.getRuntime.freeMemory() / 1024 / 1024} of ${Runtime.getRuntime.totalMemory() / 1024 / 1024}")
+      println(s"scalas ${scalaInt.size()} rubys ${jrubyInt.size()} memory free ${Runtime.getRuntime.freeMemory() / 1024 / 1024} of ${Runtime.getRuntime.totalMemory() / 1024 / 1024}")
     } catch {
       case e: Exception => throw e
       case e: Throwable => e.printStackTrace(); sys.exit(-1)
@@ -146,7 +146,6 @@ object Multibottest extends PircBot {
     override def load(key: String) = {
       val settings = new scala.tools.nsc.Settings(null)
       val classpath = sys.props("java.class.path").split(java.io.File.pathSeparatorChar).toList
-      println(classpath)
       val plugins = classpath.map(jar => s"-Xplugin:$jar")
       val pluginsOptions = plugins //++ List("-P:wartremover:only-warn-traverser:org.brianmckenna.wartremover.warts.Unsafe")
       settings.processArguments(pluginsOptions, true)
@@ -188,7 +187,7 @@ object Multibottest extends PircBot {
   })
 
   def interpreterCache[K <: AnyRef, V <: AnyRef](loader: CacheLoader[K, V]) = {
-    CacheBuilder.newBuilder().expireAfterAccess(1, TimeUnit.HOURS).softValues().maximumSize(channels.size + 5).removalListener(new RemovalListener[K, V] {
+    CacheBuilder.newBuilder().expireAfterAccess(1, TimeUnit.HOURS).softValues().maximumSize(2).removalListener(new RemovalListener[K, V] {
       override def onRemoval(notification: RemovalNotification[K, V]) = println(s"expired $notification")
     }).build(loader)
   }

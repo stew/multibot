@@ -6,6 +6,8 @@ name := "multibot"
 
 version := "1.0"
 
+fork in run := true
+
 mainClass in Compile := Some("org.multibot.Multibottest")
 
 updateOptions := updateOptions.value.withCachedResolution(true).withLatestSnapshots(false)

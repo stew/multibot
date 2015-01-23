@@ -20,6 +20,7 @@ object Multibottest extends PircBot {
   val LAMBDABOT = "lambdabot"
   val LAMBDABOTIGNORE = Set("#scala", "#scalaz", "##scalaz")
   val ADMINS = List("imeredith", "lopex", "tpolecat", "OlegYch")
+  val httpHandler = HttpHandler(sendLines)
 
   def main(args: Array[String]) {
     setName(BOTNAME)
@@ -110,10 +111,6 @@ object Multibottest extends PircBot {
 
   object Cmd {
     def unapply(s: String) = if (s.contains(' ')) Some(s.split(" ", 2).toList) else None
-  }
-
-  object PasteCmd {
-    def unapply(s: String) = if (s.indexOf("paste") == 1 && s.length > "?paste ".length) Some((s.substring(0, 1), s.substring("?paste ".length))) else None
   }
 
   case class Msg(channel: String, sender: String, login: String, hostname: String, message: String)
@@ -211,13 +208,8 @@ object Multibottest extends PircBot {
       case Cmd("join" :: ch :: Nil) => joinChannel(ch)
       case Cmd("leave" :: ch :: Nil) => partChannel(ch)
       case Cmd("reply" :: ch :: Nil) => sendMessage(msg.channel, ch)
-      case Cmd("cookies" :: "" :: Nil) => sendMessage(msg.channel, cookies.map {
-        case (k, v) => k + " -> " + v
-      }.mkString(" - ")) //cookies foreach {case(k, v) => sendMessage(msg.channel, k + " -> " + v)}
       case _ => sendMessage(msg.channel, "unknown command")
     }
-
-    // case "@listchans" => sendMessage(msg.channel, getChannels mkString " ")
 
     case "@bot" | "@bots" => sendMessage(msg.channel, ":)")
     case "@help" => sendMessage(msg.channel, "(!) scala (!reset|type|scalex), (i>) idris, (%) ruby (%reset), (,) clojure, (>>) haskell, (^) python, (&) javascript, (##) groovy, (<prefix>paste url), lambdabot relay (" + !LAMBDABOTIGNORE.contains(msg.channel) + "), url: https://github.com/OlegYch/multibot")
@@ -231,17 +223,12 @@ object Multibottest extends PircBot {
       }
     })
 
-    case PasteCmd(cmd, m) => // Http(url(m) >- {source => serve(msg.copy(message = "! " + source))})
-      val conOut = new ByteArrayOutputStream
-      createHttpClient(url(m) >>> new PrintStream(conOut))
-      serve(msg.copy(message = cmd + " " + conOut))
-
     case Cmd("!type" :: m :: Nil) => sendMessage(msg.channel, scalaInterpreter(msg.channel)((si, cout) => si.typeOfExpression(m).directObjectString))
     case "!reset" => scalaInt invalidate msg.channel
     case "!reset-all" => scalaInt.invalidateAll()
 
     case Cmd("!scalex" :: m :: Nil) => respondJSON(:/("api.scalex.org") <<? Map("q" -> m)) {
-      json =>
+      json:JValue =>
         Some((
           for {
             JObject(obj) <- json
@@ -340,18 +327,6 @@ object Multibottest extends PircBot {
         case e => Some("unexpected: " + e)
       }
 
-
-    //case Cmd("^" :: m :: Nil) => jythonInterpreter(msg.channel){(jy, cout) =>
-    //    try {
-    //        //val result = jr.evalScriptlet(m, sc).toString
-    //        jy.exec(m)
-    //        sendLines(msg.channel, cout.toString)
-    //        //sendLines(msg.channel, result.toString)
-    //    } catch {
-    //        case e: Exception => sendMessage(msg.channel, e.getMessage)
-    //    }
-    //}
-
     case Cmd("^" :: m :: Nil) => respondJSON2(:/("try-python.appspot.com") / "json" << compact(render(("method", "exec") ~("params", List(pythonSession, m)) ~ ("id" -> "null"))),
       :/("try-python.appspot.com") / "json" << compact(render(("method", "start_session") ~("params", List[String]()) ~ ("id" -> "null")))) {
       case JObject(JField("error", JNull) :: JField("id", JString("null")) :: JField("result", JObject(JField("text", JString(result)) :: _)) :: Nil) => Some(result)
@@ -372,67 +347,5 @@ object Multibottest extends PircBot {
       sendMessage(LAMBDABOT, m)
 
     case _ =>
-  }
-
-  val cookies = scala.collection.mutable.Map[String, String]()
-
-  def respondJSON(req: Request, join: Boolean = false)(response: JValue => Option[String])(implicit msg: Msg) = respond(req, join) {
-    line => response(JsonParser.parse(line))
-  }
-
-  def respondJSON2(req: Request, init: Request)(response: JValue => Option[String])(initResponse: JValue => Option[String])(implicit msg: Msg) = try {
-    respond(req) {
-      line => response(JsonParser.parse(line))
-    }
-  } catch {
-    case t: Throwable =>
-      respond(init) {
-        line => initResponse(JsonParser.parse(line))
-      }
-      respond(req) {
-        line => response(JsonParser.parse(line))
-      }
-  }
-
-  def respond(req: Request, join: Boolean = false)(response: String => Option[String])(implicit msg: Msg) = {
-    val Msg(channel, sender, login, hostname, message) = msg
-    val host = req.host
-
-    val request = cookies.get(channel + host) map (c => req <:< Map("Cookie" -> c)) getOrElse req
-    //         val request = cookies.get(channel + host) map (c => req <:< Map("Cookie" -> c)) getOrElse {
-    //             val req2 = req >:> { headers => println(headers.get("Set-Cookie"))}
-    //             (new Http)(req2)
-    //             req
-    //         }
-
-    val handler = request >+> {
-      r =>
-        r >:> {
-          headers =>
-            headers.get("Set-Cookie").foreach(h => h.foreach(c => cookies(channel + host) = c.split(";").head))
-            r >~ {
-              source =>
-                val lines = source.getLines.take(NUMLINES)
-                (if (join) List(lines.mkString) else lines).foreach(line => response(line).foreach(l => l.split("\n").take(INNUMLINES).foreach(ml => sendMessage(channel, ml))))
-            }
-        }
-    } // non empty lines
-
-    createHttpClient(handler)
-  }
-
-  def createHttpClient = new Http with NoLogging {
-    override def make_client = new ConfiguredHttpClient(credentials) {
-      override def createHttpParams() = {
-        val params = super.createHttpParams()
-        import org.apache.http.params.HttpConnectionParams
-
-        import scala.concurrent.duration._
-        val timeout = 10.seconds.toMillis.toInt
-        HttpConnectionParams.setConnectionTimeout(params, timeout)
-        HttpConnectionParams.setSoTimeout(params, timeout)
-        params
-      }
-    }
   }
 }

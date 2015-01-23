@@ -188,7 +188,7 @@ object Multibottest extends PircBot {
   })
 
   def interpreterCache[K <: AnyRef, V <: AnyRef](loader: CacheLoader[K, V]) = {
-    CacheBuilder.newBuilder().expireAfterAccess(1, TimeUnit.HOURS).softValues().maximumSize(2).removalListener(new RemovalListener[K, V] {
+    CacheBuilder.newBuilder().softValues().maximumSize(2).removalListener(new RemovalListener[K, V] {
       override def onRemoval(notification: RemovalNotification[K, V]) = println(s"expired $notification")
     }).build(loader)
   }

@@ -14,7 +14,7 @@ publishArtifact in(Compile, packageDoc) := false
 
 enablePlugins(JavaAppPackaging)
 
-scalaVersion := "2.11.4"
+scalaVersion := "2.11.5"
 
 resolvers += "Scalaz Bintray Repo" at "http://dl.bintray.com/scalaz/releases"
 
@@ -51,7 +51,7 @@ libraryDependencies ++= Seq(
 
 autoCompilerPlugins := true
 
-scalacOptions ++= Seq("-feature:false", "-language:_", "-deprecation", "-Xexperimental")
+scalacOptions ++= Seq("-feature:false", "-language:_", "-deprecation", "-Xexperimental", "-YclasspathImpl:flat")
 
 resolvers += "Sonatype Nexus Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots"
 

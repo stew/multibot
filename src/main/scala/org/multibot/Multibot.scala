@@ -26,6 +26,7 @@ object Multibottest extends PircBot {
     setVerbose(true)
     setEncoding("UTF-8")
     scalaInt.get("#scala")
+    scalaInt.get("#scalaz")
     tryConnect()
   }
 

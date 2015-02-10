@@ -21,11 +21,11 @@ scalaVersion := "2.11.5"
 resolvers += "Scalaz Bintray Repo" at "http://dl.bintray.com/scalaz/releases"
 
 libraryDependencies ++= {
-  val scalazVersion = "7.1.0"
-  val scalazStreamVersion = "0.5a"
-  val shapelessVersion = "2.0.0"
+  val scalazVersion = "7.1.1"
+  val scalazStreamVersion = "0.6a"
+  val shapelessVersion = "2.0.0" //todo update to 2.1 once monocle is updated
   val monocleVersion = "1.0.1"
-  val spireVersion = "0.8.2"
+  val spireVersion = "0.9.0"
   Seq(
     "org.scalaz" %% "scalaz-iteratee" % scalazVersion,
     "org.scalaz" %% "scalaz-effect" % scalazVersion,

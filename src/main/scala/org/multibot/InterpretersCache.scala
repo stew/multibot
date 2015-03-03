@@ -46,7 +46,10 @@ case class InterpretersCache(preload: List[String]) {
       si
     }
   })
-  preload.foreach(scalaInt.get)
+  new Thread() {
+    override def run(): Unit = preload.foreach(scalaInt.get)
+    start()
+  }
 
   def scalaInterpreter(channel: String)(f: (IMain, ByteArrayOutputStream) => String) = this.synchronized {
     val si = scalaInt.get(channel)

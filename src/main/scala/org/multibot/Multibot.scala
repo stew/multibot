@@ -27,6 +27,7 @@ object Multibottest extends PircBot {
     setEncoding("UTF-8")
     scalaInt.get("#scala")
     scalaInt.get("#scalaz")
+    scalaInt.get("#scala-ru")
     tryConnect()
   }
 
@@ -41,7 +42,7 @@ object Multibottest extends PircBot {
   }
 
   val channels = if (PRODUCTION)
-    List("#clojure.pl", "#scala.pl", "#jruby", "#ruby.pl", "#rubyonrails.pl", "#scala", "#scalaz", "#scala-fr", "#lift", "#playframework", "#bostonpython", "#fp-in-scala", "#CourseraProgfun", "#shapeless", "#akka", "#sbt", "#scala-monocle")
+    List("#clojure.pl", "#scala.pl", "#jruby", "#ruby.pl", "#rubyonrails.pl", "#scala", "#scalaz", "#scala-fr", "#lift", "#playframework", "#bostonpython", "#fp-in-scala", "#CourseraProgfun", "#shapeless", "#akka", "#sbt", "#scala-monocle", "#scala-ru")
   else
     List("#multibottest", "#multibottest2")
 

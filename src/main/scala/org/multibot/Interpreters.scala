@@ -3,11 +3,20 @@ package org.multibot
 import dispatch.classic.{url, :/}
 import org.json4s.JsonAST._
 import org.json4s.native.JsonMethods._
-import org.multibot.Multibottest.Msg
 
 case class Interpreters(handler: HttpHandler, sendLines: (String, String) => Unit) {
   import handler._
   def serve(implicit msg: Msg): Unit = msg.message match {
+    case Cmd(BOTMSG :: m :: Nil) if ADMINS contains msg.sender => m match {
+      case Cmd("join" :: ch :: Nil) => joinChannel(ch)
+      case Cmd("leave" :: ch :: Nil) => partChannel(ch)
+      case Cmd("reply" :: ch :: Nil) => sendMessage(msg.channel, ch)
+      case _ => sendMessage(msg.channel, "unknown command")
+    }
+
+    case "@bot" | "@bots" => sendMessage(msg.channel, ":)")
+    case "@help" => sendMessage(msg.channel, "(!) scala (!reset|type|scalex), (i>) idris, (%) ruby (%reset), (,) clojure, (>>) haskell, (^) python, (&) javascript, (##) groovy, (<prefix>paste url), url: https://github.com/OlegYch/multibot")
+
     case Cmd("!" :: m :: Nil) => sendLines(msg.channel, scalaInterpreter(msg.channel) { (si, cout) =>
       import scala.tools.nsc.interpreter.Results._
       si interpret m match {
@@ -116,7 +125,7 @@ case class Interpreters(handler: HttpHandler, sendLines: (String, String) => Uni
         case JObject(JField("user", JNull) :: JField("data", JArray(JString(data) :: Nil)) :: Nil) => var s: String = "";
           createHttpClient(url(data) >- {
             source => s = source
-          });
+          })
           Some(s)
         case e => Some("unexpected: " + e)
       }
@@ -135,10 +144,6 @@ case class Interpreters(handler: HttpHandler, sendLines: (String, String) => Uni
       case JObject(JField("executionResult", JString("")) :: JField("outputText", JString("")) :: JField("stacktraceText", JString(err)) :: Nil) => Some(err)
       case e => Some("unexpected" + e)
     }
-
-    case m if (m.startsWith("@") || m.startsWith(">") || m.startsWith("?")) && m.trim.length > 1 && !LAMBDABOTIGNORE.contains(msg.channel) =>
-      lastChannel = Some(msg.channel)
-      sendMessage(LAMBDABOT, m)
 
     case _ =>
   }

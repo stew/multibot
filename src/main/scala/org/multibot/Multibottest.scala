@@ -19,6 +19,6 @@ object Multibottest extends App {
   _.setServerHostname("irc.gitter.im").setServerPassword(gitterPass).
     setSocketFactory(SSLSocketFactory.getDefault)
   ).start()
-  scala.io.StdIn.readLine()
+  while (scala.io.StdIn.readLine() != "exit") Thread.sleep(1000)
   sys.exit()
 }

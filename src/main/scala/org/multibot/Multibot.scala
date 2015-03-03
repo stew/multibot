@@ -18,7 +18,7 @@ object Multibottest extends PircBot {
   val NUMLINES = 5
   val INNUMLINES = 8
   val LAMBDABOT = "lambdabot"
-  val LAMBDABOTIGNORE = Set("#scala", "#scalaz", "##scalaz")
+  val LAMBDABOTIGNORE = Set("#scala", "#scalaz")
   val ADMINS = List("imeredith", "lopex", "tpolecat", "OlegYch")
   val httpHandler = HttpHandler(sendLines)
 
@@ -26,6 +26,9 @@ object Multibottest extends PircBot {
     setName(BOTNAME)
     setVerbose(true)
     setEncoding("UTF-8")
+    scalaInt.get("#scala")
+    scalaInt.get("#scalaz")
+    scalaInt.get("#scala-ru")
     tryConnect()
   }
 
@@ -40,7 +43,7 @@ object Multibottest extends PircBot {
   }
 
   val channels = if (PRODUCTION)
-    List("#clojure.pl", "#scala.pl", "#jruby", "#ruby.pl", "#rubyonrails.pl", "#scala", "#scalaz", "#scala-fr", "#lift", "#playframework", "#bostonpython", "#fp-in-scala", "#CourseraProgfun", "#shapeless", "#akka", "#sbt", "#scala-monocle", "##scalaz")
+    List("#clojure.pl", "#scala.pl", "#jruby", "#ruby.pl", "#rubyonrails.pl", "#scala", "#scalaz", "#scala-fr", "#lift", "#playframework", "#bostonpython", "#fp-in-scala", "#CourseraProgfun", "#shapeless", "#akka", "#sbt", "#scala-monocle", "#scala-ru")
   else
     List("#multibottest", "#multibottest2")
 
@@ -82,7 +85,7 @@ object Multibottest extends PircBot {
       super.handleLine(line)
       scalaInt.cleanUp()
       jrubyInt.cleanUp()
-      println(s"memory free ${Runtime.getRuntime.freeMemory() / 1024 / 1024} of ${Runtime.getRuntime.totalMemory() / 1024 / 1024}")
+      println(s"scalas ${scalaInt.size()} rubys ${jrubyInt.size()} memory free ${Runtime.getRuntime.freeMemory() / 1024 / 1024} of ${Runtime.getRuntime.totalMemory() / 1024 / 1024}")
     } catch {
       case e: Exception => throw e
       case e: Throwable => e.printStackTrace(); sys.exit(-1)
@@ -143,7 +146,6 @@ object Multibottest extends PircBot {
     override def load(key: String) = {
       val settings = new scala.tools.nsc.Settings(null)
       val classpath = sys.props("java.class.path").split(java.io.File.pathSeparatorChar).toList
-      println(classpath)
       val plugins = classpath.map(jar => s"-Xplugin:$jar")
       val pluginsOptions = plugins //++ List("-P:wartremover:only-warn-traverser:org.brianmckenna.wartremover.warts.Unsafe")
       settings.processArguments(pluginsOptions, true)
@@ -185,7 +187,7 @@ object Multibottest extends PircBot {
   })
 
   def interpreterCache[K <: AnyRef, V <: AnyRef](loader: CacheLoader[K, V]) = {
-    CacheBuilder.newBuilder().expireAfterAccess(1, TimeUnit.HOURS).softValues().maximumSize(channels.size + 5).removalListener(new RemovalListener[K, V] {
+    CacheBuilder.newBuilder().softValues().maximumSize(2).removalListener(new RemovalListener[K, V] {
       override def onRemoval(notification: RemovalNotification[K, V]) = println(s"expired $notification")
     }).build(loader)
   }

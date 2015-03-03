@@ -6,6 +6,8 @@ name := "multibot"
 
 version := "1.0"
 
+fork in run := true
+
 mainClass in Compile := Some("org.multibot.Multibottest")
 
 updateOptions := updateOptions.value.withCachedResolution(true).withLatestSnapshots(false)
@@ -14,16 +16,16 @@ publishArtifact in(Compile, packageDoc) := false
 
 enablePlugins(JavaAppPackaging)
 
-scalaVersion := "2.11.4"
+scalaVersion := "2.11.5"
 
 resolvers += "Scalaz Bintray Repo" at "http://dl.bintray.com/scalaz/releases"
 
 libraryDependencies ++= {
-  val scalazVersion = "7.1.0"
-  val scalazStreamVersion = "0.5a"
-  val shapelessVersion = "2.0.0"
-  val monocleVersion = "1.0.0-M1"
-  val spireVersion = "0.8.2"
+  val scalazVersion = "7.1.1"
+  val scalazStreamVersion = "0.6a"
+  val shapelessVersion = "2.0.0" //todo update to 2.1 once monocle is updated
+  val monocleVersion = "1.0.1"
+  val spireVersion = "0.9.0"
   Seq(
     "org.scalaz" %% "scalaz-iteratee" % scalazVersion,
     "org.scalaz" %% "scalaz-effect" % scalazVersion,
@@ -51,7 +53,7 @@ libraryDependencies ++= Seq(
 
 autoCompilerPlugins := true
 
-scalacOptions ++= Seq("-feature:false", "-language:_", "-deprecation", "-Xexperimental")
+scalacOptions ++= Seq("-feature:false", "-language:_", "-deprecation", "-Xexperimental", "-YclasspathImpl:flat")
 
 resolvers += "Sonatype Nexus Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots"
 

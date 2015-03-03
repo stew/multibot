@@ -1,6 +1,6 @@
 package org.multibot
 
-import dispatch.classic.{url, :/}
+import dispatch.classic._
 import org.json4s.JsonAST._
 import org.json4s.native.JsonMethods._
 
@@ -15,7 +15,7 @@ case class Interpreters(handler: HttpHandler, sendLines: (String, String) => Uni
     }
 
     case "@bot" | "@bots" => sendMessage(msg.channel, ":)")
-    case "@help" => sendMessage(msg.channel, "(!) scala (!reset|type|scalex), (i>) idris, (%) ruby (%reset), (,) clojure, (>>) haskell, (^) python, (&) javascript, (##) groovy, (<prefix>paste url), url: https://github.com/OlegYch/multibot")
+    case "@help" => sendMessage(msg.channel, "(!) scala (!reset|type|scalex), (i>) idris, (,) clojure, (>>) haskell, (^) python, (&) javascript, (##) groovy, url: https://github.com/OlegYch/multibot")
 
     case Cmd("!" :: m :: Nil) => sendLines(msg.channel, scalaInterpreter(msg.channel) { (si, cout) =>
       import scala.tools.nsc.interpreter.Results._
@@ -91,19 +91,6 @@ case class Interpreters(handler: HttpHandler, sendLines: (String, String) => Uni
       case JObject(JField("success", JBool(false)) :: _ :: JField("result", JString(output)) :: _) => Some(output)
       case e => Some("unexpected: " + e)
     }
-
-    case "%reset" => jrubyInt invalidate msg.channel
-    case "%reset-all" => jrubyInt.invalidateAll()
-
-    case Cmd("%" :: m :: Nil) => sendLines(msg.channel, jrubyInterpreter(msg.channel) { (jr, sc, cout) =>
-        try {
-          val result = jr.evalScriptlet("# coding: utf-8\n" + m, sc).toString
-          sendLines(msg.channel, cout.toString)
-          result.toString
-        } catch {
-          case e: Exception => e.getMessage
-        }
-    })
 
     case Cmd("i>" :: m :: Nil) => respondJSON(:/("www.tryidris.org") / "interpret" << compact(render("expression", m))) {
       case JArray(List(JArray(List(JString(":return"), JArray(List(JString(_), JString(output), _*)), _*)), _*)) => Some(output)

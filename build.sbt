@@ -47,7 +47,6 @@ libraryDependencies ++= Seq(
   "org.scala-lang" % "scala-reflect" % scalaVersion.value,
   "net.databinder" %% "dispatch-http" % "0.8.10",
   "org.json4s" %% "json4s-native" % "3.2.10",
-  "org.jruby" % "jruby-complete" % "1.7.10",
   "com.google.guava" % "guava" % "18.0"
 )
 

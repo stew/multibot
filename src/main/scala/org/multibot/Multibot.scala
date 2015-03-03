@@ -89,8 +89,7 @@ object Multibottest extends PircBot {
       }
       super.handleLine(line)
       scalaInt.cleanUp()
-      jrubyInt.cleanUp()
-      println(s"scalas ${scalaInt.size()} rubys ${jrubyInt.size()} memory free ${Runtime.getRuntime.freeMemory() / 1024 / 1024} of ${Runtime.getRuntime.totalMemory() / 1024 / 1024}")
+      println(s"scalas ${scalaInt.size()} memory free ${Runtime.getRuntime.freeMemory() / 1024 / 1024} of ${Runtime.getRuntime.totalMemory() / 1024 / 1024}")
     } catch {
       case e: Exception => throw e
       case e: Throwable => e.printStackTrace(); sys.exit(-1)
@@ -169,35 +168,11 @@ object Multibottest extends PircBot {
     })
   }
 
-  import org.jruby.{RubyInstanceConfig, Ruby}
-  import org.jruby.runtime.scope.ManyVarsDynamicScope
-
-  val jrubyInt = interpreterCache(new CacheLoader[String, (Ruby, ManyVarsDynamicScope)] {
-    override def load(key: String) = {
-      val config = new RubyInstanceConfig
-      config setOutput conOutStream
-      config setError conOutStream
-      config setInternalEncoding "utf-8"
-      config setExternalEncoding "utf-8"
-
-      val jruby = Ruby.newInstance(config)
-      val scope = new ManyVarsDynamicScope(jruby.getStaticScopeFactory.newEvalScope(jruby.getCurrentContext.getCurrentScope.getStaticScope), jruby.getCurrentContext.getCurrentScope)
-      (jruby, scope)
-    }
-  })
-
   def interpreterCache[K <: AnyRef, V <: AnyRef](loader: CacheLoader[K, V]) = {
     CacheBuilder.newBuilder().softValues().maximumSize(2).removalListener(new RemovalListener[K, V] {
       override def onRemoval(notification: RemovalNotification[K, V]) = println(s"expired $notification")
     }).build(loader)
   }
-  def jrubyInterpreter(channel: String)(f: (Ruby, ManyVarsDynamicScope, ByteArrayOutputStream) => String) = this.synchronized {
-    val (jr, sc) = jrubyInt.get(channel)
-    ScriptSecurityManager.hardenPermissions(captureOutput {
-      f(jr, sc, conOut)
-    })
-  }
-
   var pythonSession = ""
 
   def sendLines(channel: String, message: String) = {

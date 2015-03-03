@@ -4,10 +4,12 @@ import dispatch.classic.{ConfiguredHttpClient, Http, NoLogging, Request}
 import org.json4s.JsonAST.JValue
 import org.json4s.native.JsonParser
 
-case class HttpHandler(sendMessage: (String, String) => Unit) {
+case class HttpHandler() {
   private val NUMLINES = 5
   private val INNUMLINES = 8
   private val cookies = scala.collection.mutable.Map[String, String]()
+
+  case class respond(sendMessage: (String, String) => Unit) {
 
   def respondJSON(req: Request, join: Boolean = false)(response: JValue => Option[String])(implicit msg: Msg) = respond(req, join) {
     line => response(JsonParser.parse(line))
@@ -28,7 +30,7 @@ case class HttpHandler(sendMessage: (String, String) => Unit) {
   }
 
   def respond(req: Request, join: Boolean = false)(response: String => Option[String])(implicit msg: Msg) = {
-    val Msg(channel, sender, login, hostname, message) = msg
+    val channel = msg.channel
     val host = req.host
 
     val request = cookies.get(channel + host) map (c => req <:< Map("Cookie" -> c)) getOrElse req
@@ -50,6 +52,7 @@ case class HttpHandler(sendMessage: (String, String) => Unit) {
     } // non empty lines
 
     createHttpClient(handler)
+  }
   }
 
   def createHttpClient = new Http with NoLogging {

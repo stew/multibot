@@ -44,7 +44,8 @@ libraryDependencies ++= {
 }
 
 libraryDependencies ++= Seq(
-  "pircbot" % "pircbot" % "1.5.0",
+  "org.pircbotx" % "pircbotx" % "2.0.1",
+  "org.slf4j" % "slf4j-simple" % "1.7.10",
   "org.scala-lang" % "scala-compiler" % scalaVersion.value,
   "org.scala-lang" % "scala-reflect" % scalaVersion.value,
   "net.databinder" %% "dispatch-http" % "0.8.10",

@@ -4,7 +4,7 @@ import java.io.{ByteArrayOutputStream, PrintStream}
 
 import com.google.common.cache.{CacheBuilder, CacheLoader, RemovalListener, RemovalNotification}
 
-case class InterpretersCache() {
+case class InterpretersCache(preload: List[String]) {
   private val stdOut = System.out
   private val stdErr = System.err
   private val conOut = new ByteArrayOutputStream
@@ -46,6 +46,7 @@ case class InterpretersCache() {
       si
     }
   })
+  preload.foreach(scalaInt.get)
 
   def scalaInterpreter(channel: String)(f: (IMain, ByteArrayOutputStream) => String) = this.synchronized {
     val si = scalaInt.get(channel)
@@ -55,7 +56,7 @@ case class InterpretersCache() {
   }
 
   private def interpreterCache[K <: AnyRef, V <: AnyRef](loader: CacheLoader[K, V]) = {
-    CacheBuilder.newBuilder().softValues().maximumSize(2).removalListener(new RemovalListener[K, V] {
+    CacheBuilder.newBuilder().softValues().maximumSize(preload.size + 1).removalListener(new RemovalListener[K, V] {
       override def onRemoval(notification: RemovalNotification[K, V]) = println(s"expired $notification")
     }).build(loader)
   }

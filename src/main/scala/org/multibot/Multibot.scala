@@ -15,7 +15,7 @@ object Multibottest extends PircBot {
   val LAMBDABOT = "lambdabot"
   val ADMINS = List("imeredith", "lopex", "tpolecat", "OlegYch")
   val httpHandler = HttpHandler(sendLines)
-  val cache = InterpretersCache()
+  val cache = InterpretersCache(List("#scala", "#scalaz"))
   val interpreters = InterpretersHandler(cache, httpHandler, sendLines)
   val admin = AdminHandler(getName + ":", ADMINS, joinChannel, partChannel, sendLines)
 
@@ -23,10 +23,9 @@ object Multibottest extends PircBot {
     setName(BOTNAME)
     setVerbose(true)
     setEncoding("UTF-8")
-    cache.scalaInt.get("#scala")
-    cache.scalaInt.get("#scalaz")
-    cache.scalaInt.get("#scala-ru")
     tryConnect()
+    scala.io.StdIn.readLine()
+    sys.exit()
   }
 
   private def tryConnect(): Unit = try connect()

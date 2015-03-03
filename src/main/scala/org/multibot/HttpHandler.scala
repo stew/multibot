@@ -40,7 +40,10 @@ case class HttpHandler(sendMessage: (String, String) => Unit) {
             r >~ {
               source =>
                 val lines = source.getLines.take(NUMLINES)
-                (if (join) List(lines.mkString) else lines).foreach(line => response(line).foreach(l => l.split("\n").take(INNUMLINES).foreach(ml => sendMessage(channel, ml))))
+                (if (join) List(lines.mkString) else lines).foreach { line =>
+                  println(line)
+                  response(line).foreach(l => l.split("\n").take(INNUMLINES).foreach(ml => sendMessage(channel, ml)))
+                }
             }
         }
     } // non empty lines

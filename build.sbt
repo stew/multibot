@@ -8,6 +8,8 @@ version := "1.0"
 
 fork in run := true
 
+connectInput in run := true
+
 mainClass in Compile := Some("org.multibot.Multibottest")
 
 updateOptions := updateOptions.value.withCachedResolution(true).withLatestSnapshots(false)
@@ -16,7 +18,7 @@ publishArtifact in(Compile, packageDoc) := false
 
 enablePlugins(JavaAppPackaging)
 
-scalaVersion := "2.11.5"
+scalaVersion := "2.11.6"
 
 resolvers += "Scalaz Bintray Repo" at "http://dl.bintray.com/scalaz/releases"
 

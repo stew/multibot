@@ -1,36 +1,27 @@
 package org.multibot
 
 import dispatch.classic._
-import org.json4s.JsonAST._
 import org.json4s.native.JsonMethods._
+import org.json4s.JsonAST._
+import org.json4s.JsonDSL._
 
-case class Interpreters(handler: HttpHandler, sendLines: (String, String) => Unit) {
-  import handler._
+case class InterpretersHandler(cache: InterpretersCache, http: HttpHandler, sendLines: (String, String) => Unit) {
+  private var pythonSession = "" //todo
   def serve(implicit msg: Msg): Unit = msg.message match {
-    case Cmd(BOTMSG :: m :: Nil) if ADMINS contains msg.sender => m match {
-      case Cmd("join" :: ch :: Nil) => joinChannel(ch)
-      case Cmd("leave" :: ch :: Nil) => partChannel(ch)
-      case Cmd("reply" :: ch :: Nil) => sendMessage(msg.channel, ch)
-      case _ => sendMessage(msg.channel, "unknown command")
-    }
-
-    case "@bot" | "@bots" => sendMessage(msg.channel, ":)")
-    case "@help" => sendMessage(msg.channel, "(!) scala (!reset|type|scalex), (i>) idris, (,) clojure, (>>) haskell, (^) python, (&) javascript, (##) groovy, url: https://github.com/OlegYch/multibot")
-
-    case Cmd("!" :: m :: Nil) => sendLines(msg.channel, scalaInterpreter(msg.channel) { (si, cout) =>
+    case Cmd("!" :: m :: Nil) => sendLines(msg.channel, cache.scalaInterpreter(msg.channel) { (si, cout) =>
       import scala.tools.nsc.interpreter.Results._
       si interpret m match {
-        case Success => cout.toString.replaceAll("(?m:^res[0-9]+: )", "") // + "\n" + iout.toString.replaceAll("(?m:^res[0-9]+: )", "")
+        case Success => cout.toString.replaceAll("(?m:^res[0-9]+: )", "")
         case Error => cout.toString.replaceAll("^<console>:[0-9]+: ", "")
         case Incomplete => "error: unexpected EOF found, incomplete expression"
       }
     })
 
-    case Cmd("!type" :: m :: Nil) => sendMessage(msg.channel, scalaInterpreter(msg.channel)((si, cout) => si.typeOfExpression(m).directObjectString))
-    case "!reset" => scalaInt invalidate msg.channel
-    case "!reset-all" => scalaInt.invalidateAll()
+    case Cmd("!type" :: m :: Nil) => sendLines(msg.channel, cache.scalaInterpreter(msg.channel)((si, cout) => si.typeOfExpression(m).directObjectString))
+    case "!reset" => cache.scalaInt invalidate msg.channel
+    case "!reset-all" => cache.scalaInt.invalidateAll()
 
-    case Cmd("!scalex" :: m :: Nil) => respondJSON(:/("api.scalex.org") <<? Map("q" -> m)) {
+    case Cmd("!scalex" :: m :: Nil) => http.respondJSON(:/("api.scalex.org") <<? Map("q" -> m)) {
       json =>
         Some((
           for {
@@ -54,20 +45,20 @@ case class Interpreters(handler: HttpHandler, sendLines: (String, String) => Uni
           } yield pname + ptparams + " " + name + tparams + ": " + vparams + ": " + rtype + " '" + txt + "'").mkString("\n"))
     }
 
-    case Cmd("!!" :: m :: Nil) => respond(:/("www.simplyscala.com") / "interp" <<? Map("bot" -> "irc", "code" -> m)) {
+    case Cmd("!!" :: m :: Nil) => http.respond(:/("www.simplyscala.com") / "interp" <<? Map("bot" -> "irc", "code" -> m)) {
       case "warning: there were deprecation warnings; re-run with -deprecation for details" |
            "warning: there were unchecked warnings; re-run with -unchecked for details" |
            "New interpreter instance being created for you, this may take a few seconds." | "Please be patient." => None
       case line => Some(line.replaceAll("^res[0-9]+: ", ""))
     }
 
-    case Cmd("," :: m :: Nil) => respondJSON(:/("try-clojure.org") / "eval.json" <<? Map("expr" -> m)) {
+    case Cmd("," :: m :: Nil) => http.respondJSON(:/("try-clojure.org") / "eval.json" <<? Map("expr" -> m)) {
       case JObject(JField("expr", JString(_)) :: JField("result", JString(result)) :: Nil) => Some(result)
       case JObject(JField("error", JBool(true)) :: JField("message", JString(message)) :: Nil) => Some(message)
       case e => Some("unexpected: " + e)
     }
 
-    case Cmd(">>" :: m :: Nil) => respondJSON(:/("tryhaskell.org") / "eval" <<? Map("exp" -> m)) {
+    case Cmd(">>" :: m :: Nil) => http.respondJSON(:/("tryhaskell.org") / "eval" <<? Map("exp" -> m)) {
       case JObject(
       JField("success",
       JObject(
@@ -82,7 +73,7 @@ case class Interpreters(handler: HttpHandler, sendLines: (String, String) => Uni
       case e => Some("unexpected: " + e)
     }
 
-    case Cmd("%%" :: m :: Nil) => respondJSON(:/("tryruby.org") / "/levels/1/challenges/0" <:<
+    case Cmd("%%" :: m :: Nil) => http.respondJSON(:/("tryruby.org") / "/levels/1/challenges/0" <:<
       Map("Accept" -> "application/json, text/javascript, */*; q=0.01",
         "Content-Type" -> "application/x-www-form-urlencoded; charset=UTF-8",
         "X-Requested-With" -> "XMLHttpRequest",
@@ -92,7 +83,7 @@ case class Interpreters(handler: HttpHandler, sendLines: (String, String) => Uni
       case e => Some("unexpected: " + e)
     }
 
-    case Cmd("i>" :: m :: Nil) => respondJSON(:/("www.tryidris.org") / "interpret" << compact(render("expression", m))) {
+    case Cmd("i>" :: m :: Nil) => http.respondJSON(:/("www.tryidris.org") / "interpret" << compact(render("expression", m))) {
       case JArray(List(JArray(List(JString(":return"), JArray(List(JString(_), JString(output), _*)), _*)), _*)) => Some(output)
       case e => Some("unexpected: " + e)
     }
@@ -108,16 +99,16 @@ case class Interpreters(handler: HttpHandler, sendLines: (String, String) => Uni
                 }).listen();
                                      """
 
-      respondJSON((:/("jsapp.us") / "ajax" << compact(render(("actions", List(("action", "test") ~("code", src) ~("randToken", "3901") ~("fileName", ""))) ~("user", "null") ~("token", "null"))))) {
+      http.respondJSON((:/("jsapp.us") / "ajax" << compact(render(("actions", List(("action", "test") ~("code", src) ~("randToken", "3901") ~("fileName", ""))) ~("user", "null") ~("token", "null"))))) {
         case JObject(JField("user", JNull) :: JField("data", JArray(JString(data) :: Nil)) :: Nil) => var s: String = "";
-          createHttpClient(url(data) >- {
+          http.createHttpClient(url(data) >- {
             source => s = source
           })
           Some(s)
         case e => Some("unexpected: " + e)
       }
 
-    case Cmd("^" :: m :: Nil) => respondJSON2(:/("try-python.appspot.com") / "json" << compact(render(("method", "exec") ~("params", List(pythonSession, m)) ~ ("id" -> "null"))),
+    case Cmd("^" :: m :: Nil) => http.respondJSON2(:/("try-python.appspot.com") / "json" << compact(render(("method", "exec") ~("params", List(pythonSession, m)) ~ ("id" -> "null"))),
       :/("try-python.appspot.com") / "json" << compact(render(("method", "start_session") ~("params", List[String]()) ~ ("id" -> "null")))) {
       case JObject(JField("error", JNull) :: JField("id", JString("null")) :: JField("result", JObject(JField("text", JString(result)) :: _)) :: Nil) => Some(result)
       case e => Some("unexpected: " + e)
@@ -126,7 +117,7 @@ case class Interpreters(handler: HttpHandler, sendLines: (String, String) => Uni
       case e => None
     }
 
-    case Cmd("##" :: m :: Nil) => respondJSON(:/("groovyconsole.appspot.com") / "executor.groovy" <<? Map("script" -> m), true) {
+    case Cmd("##" :: m :: Nil) => http.respondJSON(:/("groovyconsole.appspot.com") / "executor.groovy" <<? Map("script" -> m), true) {
       case JObject(JField("executionResult", JString(result)) :: JField("outputText", JString(output)) :: JField("stacktraceText", JString("")) :: Nil) => Some(result.trim + "\n" + output.trim)
       case JObject(JField("executionResult", JString("")) :: JField("outputText", JString("")) :: JField("stacktraceText", JString(err)) :: Nil) => Some(err)
       case e => Some("unexpected" + e)

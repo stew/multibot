@@ -1,15 +1,6 @@
 package org.multibot
 
 import org.jibble.pircbot.{NickAlreadyInUseException, PircBot}
-import dispatch.classic._
-import org.json4s.native.JsonMethods._
-import org.json4s.native._
-import org.json4s.JsonAST._
-import org.json4s.JsonDSL._
-
-import java.io.{PrintStream, ByteArrayOutputStream}
-import com.google.common.cache.{RemovalNotification, RemovalListener, CacheLoader, CacheBuilder}
-import java.util.concurrent.TimeUnit
 
 case class Msg(channel: String, sender: String, login: String, hostname: String, message: String)
 object Cmd {
@@ -19,21 +10,22 @@ object Cmd {
 object Multibottest extends PircBot {
   val PRODUCTION = Option(System getenv "multibot.production") exists (_ toBoolean)
   val BOTNAME = if (PRODUCTION) "multibot_" else "multibot__"
-  val BOTMSG = BOTNAME + ":"
   val NUMLINES = 5
   val INNUMLINES = 8
   val LAMBDABOT = "lambdabot"
   val ADMINS = List("imeredith", "lopex", "tpolecat", "OlegYch")
   val httpHandler = HttpHandler(sendLines)
-  val interpreters = Interpreters(httpHandler, sendLines)
+  val cache = InterpretersCache()
+  val interpreters = InterpretersHandler(cache, httpHandler, sendLines)
+  val admin = AdminHandler(getName + ":", ADMINS, joinChannel, partChannel, sendLines)
 
   def main(args: Array[String]) {
     setName(BOTNAME)
     setVerbose(true)
     setEncoding("UTF-8")
-    scalaInt.get("#scala")
-    scalaInt.get("#scalaz")
-    scalaInt.get("#scala-ru")
+    cache.scalaInt.get("#scala")
+    cache.scalaInt.get("#scalaz")
+    cache.scalaInt.get("#scala-ru")
     tryConnect()
   }
 
@@ -68,13 +60,10 @@ object Multibottest extends PircBot {
         Thread sleep 10000
     }
 
-  var lastChannel: Option[String] = None
-
-
   override def handleLine(line: String): Unit = {
-    import scala.concurrent.{Promise, Future}
-    import scala.util.Success
     import scala.concurrent.ExecutionContext.Implicits.global
+    import scala.concurrent.{Future, Promise}
+    import scala.util.Success
     val timeout = Promise[Boolean]()
     try {
       Future {
@@ -88,8 +77,8 @@ object Multibottest extends PircBot {
         }
       }
       super.handleLine(line)
-      scalaInt.cleanUp()
-      println(s"scalas ${scalaInt.size()} memory free ${Runtime.getRuntime.freeMemory() / 1024 / 1024} of ${Runtime.getRuntime.totalMemory() / 1024 / 1024}")
+      cache.scalaInt.cleanUp()
+      println(s"scalas ${cache.scalaInt.size()} memory free ${Runtime.getRuntime.freeMemory() / 1024 / 1024} of ${Runtime.getRuntime.totalMemory() / 1024 / 1024}")
     } catch {
       case e: Exception => throw e
       case e: Throwable => e.printStackTrace(); sys.exit(-1)
@@ -98,82 +87,15 @@ object Multibottest extends PircBot {
     }
   }
 
-  override def onPrivateMessage(sender: String, login: String, hostname: String, message: String) = sender match {
-    case LAMBDABOT => lastChannel foreach (sendMessage(_, message))
-    case _ => onMessage(sender, sender, login, hostname, message)
+  override def onPrivateMessage(sender: String, login: String, hostname: String, message: String) = {
+    onMessage(sender, sender, login, hostname, message)
   }
 
-  override def onNotice(sender: String, login: String, hostname: String, target: String, notice: String) = sender match {
-    case LAMBDABOT => lastChannel foreach (sendNotice(_, notice))
-    case _ =>
+  override def onMessage(channel: String, sender: String, login: String, hostname: String, message: String) = {
+    val msg = Msg(channel, sender, login, hostname, message)
+    interpreters.serve(msg)
+    admin.serve(msg)
   }
-
-  override def onAction(sender: String, login: String, hostname: String, target: String, action: String) = sender match {
-    case LAMBDABOT => lastChannel foreach (sendAction(_, action))
-    case _ =>
-  }
-
-  override def onMessage(channel: String, sender: String, login: String, hostname: String, message: String) =
-    interpreters.serve(Msg(channel, sender, login, hostname, message))
-
-
-  val stdOut = System.out
-  val stdErr = System.err
-  val conOut = new ByteArrayOutputStream
-  val conOutStream = new PrintStream(conOut)
-  val conStdOut = Console.out
-  val conStdErr = Console.err
-
-  def captureOutput[T](block: => T): T = try {
-    System setOut conOutStream
-    System setErr conOutStream
-    (Console withOut conOutStream) {
-      (Console withErr conOutStream) {
-        block
-      }
-    }
-  } finally {
-    System setOut stdOut
-    System setErr stdErr
-    conOut.flush()
-    conOut.reset()
-  }
-
-  import scala.tools.nsc.interpreter.IMain
-
-  val scalaInt = interpreterCache(new CacheLoader[String, IMain] {
-    override def load(key: String) = {
-      val settings = new scala.tools.nsc.Settings(null)
-      val classpath = sys.props("java.class.path").split(java.io.File.pathSeparatorChar).toList
-      val plugins = classpath.map(jar => s"-Xplugin:$jar")
-      val pluginsOptions = plugins //++ List("-P:wartremover:only-warn-traverser:org.brianmckenna.wartremover.warts.Unsafe")
-      settings.processArguments(pluginsOptions, true)
-      settings.usejavacp.value = true
-      settings.deprecation.value = true
-      settings.feature.value = false
-      val si = new IMain(settings)
-
-      val imports = List("scalaz._", "Scalaz._", "reflect.runtime.universe.reify", "org.scalacheck.Prop._", "monocle.syntax._", "monocle.macros._")
-      si.beQuietDuring {
-        imports.foreach(i => si.interpret(s"import $i"))
-      }
-      si
-    }
-  })
-
-  def scalaInterpreter(channel: String)(f: (IMain, ByteArrayOutputStream) => String) = this.synchronized {
-    val si = scalaInt.get(channel)
-    ScriptSecurityManager.hardenPermissions(captureOutput {
-      f(si, conOut)
-    })
-  }
-
-  def interpreterCache[K <: AnyRef, V <: AnyRef](loader: CacheLoader[K, V]) = {
-    CacheBuilder.newBuilder().softValues().maximumSize(2).removalListener(new RemovalListener[K, V] {
-      override def onRemoval(notification: RemovalNotification[K, V]) = println(s"expired $notification")
-    }).build(loader)
-  }
-  var pythonSession = ""
 
   def sendLines(channel: String, message: String) = {
     println(message)

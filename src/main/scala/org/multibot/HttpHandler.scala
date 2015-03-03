@@ -3,10 +3,11 @@ package org.multibot
 import dispatch.classic.{ConfiguredHttpClient, Http, NoLogging, Request}
 import org.json4s.JsonAST.JValue
 import org.json4s.native.JsonParser
-import org.multibot.Multibottest._
 
 case class HttpHandler(sendMessage: (String, String) => Unit) {
-  val cookies = scala.collection.mutable.Map[String, String]()
+  private val NUMLINES = 5
+  private val INNUMLINES = 8
+  private val cookies = scala.collection.mutable.Map[String, String]()
 
   def respondJSON(req: Request, join: Boolean = false)(response: JValue => Option[String])(implicit msg: Msg) = respond(req, join) {
     line => response(JsonParser.parse(line))

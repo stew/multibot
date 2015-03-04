@@ -87,5 +87,16 @@ case class Multibot(cache: InterpretersCache, botname: String, channels: List[St
     }
   }))
   channels.foreach(builder.addAutoJoinChannel(_))
-  private case object bot extends org.pircbotx.PircBotX(builder.buildConfiguration())
+  private case object bot extends org.pircbotx.PircBotX(builder.buildConfiguration()) {
+    override def startBot(): Unit = {
+      try {
+        super.startBot()
+      } catch {
+        case e: java.io.IOException =>
+          e.printStackTrace()
+          Thread.sleep(1000)
+          startBot()
+      }
+    }
+  }
 }

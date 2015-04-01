@@ -12,12 +12,11 @@ object Multibottest {
       else
         List("#multibottest", "#multibottest2")
     ).start()
-    Multibot(cache,
-      if (PRODUCTION) "multibot1" else "multibot2",
-      if (PRODUCTION) List("#dev-ua/scala") else List("#OlegYch/multibot"),
-      //  _.setServerHostname("irc.gitter.im").setServerPassword(gitterPass).
-      //    setSocketFactory(javax.net.ssl.SSLSocketFactory.getDefault)
-      _.setServer("irc-next.gitter.im", 7777).setServerPassword(gitterPass)
+    Multibot(cache = cache,
+      botname = if (PRODUCTION) "multibot1" else "multibot2",
+      channels = if (PRODUCTION) List("#dev-ua/scala") else List("#OlegYch/multibot"),
+      settings = _.setServerHostname("irc.gitter.im").setServerPassword(gitterPass).
+        setSocketFactory(javax.net.ssl.SSLSocketFactory.getDefault)
     ).start()
     while (scala.io.StdIn.readLine() != "exit") Thread.sleep(1000)
     sys.exit()

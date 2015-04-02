@@ -52,7 +52,7 @@ case class InterpretersHandler(cache: InterpretersCache, http: HttpHandler, send
       case line => Some(line.replaceAll("^res[0-9]+: ", ""))
     }
 
-    case Cmd("," :: m :: Nil) => http.respond(sendLines).respondJSON(:/("try-clojure.org") / "eval.json" <<? Map("expr" -> m)) {
+    case Cmd("," :: m :: Nil) => http.respond(sendLines).respondJSON(:/("www.tryclj.com") / "eval.json" <<? Map("expr" -> m)) {
       case JObject(JField("expr", JString(_)) :: JField("result", JString(result)) :: Nil) => Some(result)
       case JObject(JField("error", JBool(true)) :: JField("message", JString(message)) :: Nil) => Some(message)
       case e => Some("unexpected: " + e)

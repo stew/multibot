@@ -23,12 +23,13 @@ scalaVersion := "2.11.6"
 resolvers += "Scalaz Bintray Repo" at "http://dl.bintray.com/scalaz/releases"
 
 libraryDependencies ++= {
-  val scalazVersion = "7.1.1"
+  val scalazVersion = "7.1.2"
   val scalazStreamVersion = "0.6a"
-  val shapelessVersion = "2.0.0" //todo update to 2.1 once monocle is updated
-  val monocleVersion = "1.0.1"
-  val spireVersion = "0.9.0"
+  val shapelessVersion = "2.0.0" //todo update to 2.2 once monocle is updated
+  val monocleVersion = "1.1.1"
+  val spireVersion = "0.9.1"
   Seq(
+//    "org.pelotom" %% "effectful" % "1.0.1", //todo add when version for scalaz 7.1 is released
     "org.scalaz" %% "scalaz-iteratee" % scalazVersion,
     "org.scalaz" %% "scalaz-effect" % scalazVersion,
     "org.scalaz" %% "scalaz-typelevel" % scalazVersion,
@@ -61,11 +62,11 @@ resolvers += "Sonatype Nexus Snapshots" at "https://oss.sonatype.org/content/rep
 
 resolvers += "Scalaz Bintray Repo" at "http://dl.bintray.com/scalaz/releases"
 
-resolvers += "linter" at "http://hairyfotr.github.io/linteRepo/releases"
+resolvers += "linter" at "https://hairyfotr.github.io/linteRepo/releases"
 
-addCompilerPlugin("com.foursquare.lint" %% "linter" % "0.1.3")
+addCompilerPlugin("com.foursquare.lint" %% "linter" % "0.1.9")
 
-libraryDependencies += "com.foursquare.lint" %% "linter" % "0.1.3"
+libraryDependencies += "com.foursquare.lint" %% "linter" % "0.1.9"
 
 //scalacOptions += "-P:linter:disable:OLOLOUseHypot+CloseSourceFile+OptionOfOption"
 
@@ -85,7 +86,7 @@ buildInfoPackage := "org.multibot"
 
 resolvers += "bintray/non" at "http://dl.bintray.com/non/maven"
 
-addCompilerPlugin("org.spire-math" %% "kind-projector" % "0.5.2")
+addCompilerPlugin("org.spire-math" %% "kind-projector" % "0.5.4")
 
-libraryDependencies += "org.spire-math" %% "kind-projector" % "0.5.2"
+libraryDependencies += "org.spire-math" %% "kind-projector" % "0.5.4"
 

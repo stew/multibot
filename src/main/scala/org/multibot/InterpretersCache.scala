@@ -39,7 +39,7 @@ case class InterpretersCache(preload: List[String]) {
       settings.feature.value = false
       val si = new IMain(settings)
 
-      val imports = List("scalaz._", "Scalaz._", "reflect.runtime.universe.reify", "org.scalacheck.Prop._", "monocle.syntax._", "monocle.macros._")
+      val imports = List("scalaz._", "Scalaz._", "reflect.runtime.universe.reify", "org.scalacheck.Prop._", "monocle.syntax._", "monocle.macros._", "effectful._")
       si.beQuietDuring {
         imports.foreach(i => si.interpret(s"import $i"))
       }

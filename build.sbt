@@ -18,12 +18,12 @@ publishArtifact in(Compile, packageDoc) := false
 
 enablePlugins(JavaAppPackaging)
 
-scalaVersion := "2.11.6"
+scalaVersion := "2.11.7"
 
 resolvers += "Scalaz Bintray Repo" at "http://dl.bintray.com/scalaz/releases"
 
 libraryDependencies ++= {
-  val scalazVersion = "7.1.1"
+  val scalazVersion = "7.1.3"
   val scalazStreamVersion = "0.6a"
   val shapelessVersion = "2.0.0" //todo update to 2.1 once monocle is updated
   val monocleVersion = "1.0.1"

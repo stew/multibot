@@ -18,18 +18,17 @@ publishArtifact in(Compile, packageDoc) := false
 
 enablePlugins(JavaAppPackaging)
 
-scalaVersion := "2.11.6"
+scalaVersion := "2.11.7"
 
 resolvers += "Scalaz Bintray Repo" at "http://dl.bintray.com/scalaz/releases"
 
 libraryDependencies ++= {
-  val scalazVersion = "7.1.2"
+  val scalazVersion = "7.1.3"
   val scalazStreamVersion = "0.6a"
   val shapelessVersion = "2.0.0" //todo update to 2.2 once monocle is updated
   val monocleVersion = "1.1.1"
   val spireVersion = "0.9.1"
   Seq(
-//    "org.pelotom" %% "effectful" % "1.0.1", //todo add when version for scalaz 7.1 is released
     "org.scalaz" %% "scalaz-iteratee" % scalazVersion,
     "org.scalaz" %% "scalaz-effect" % scalazVersion,
     "org.scalaz" %% "scalaz-typelevel" % scalazVersion,
@@ -40,7 +39,8 @@ libraryDependencies ++= {
     "com.github.julien-truffaut" %% "monocle-law" % monocleVersion,
     "com.github.julien-truffaut" %% "monocle-macro" % monocleVersion,
     "org.spire-math" %% "spire" % spireVersion,
-    "org.scalaz.stream" %% "scalaz-stream" % scalazStreamVersion
+    "org.scalaz.stream" %% "scalaz-stream" % scalazStreamVersion,
+    "org.pelotom" %% "effectful" % "1.0.1"
   )
 }
 

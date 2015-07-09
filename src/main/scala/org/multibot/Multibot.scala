@@ -20,38 +20,12 @@ case class Multibot(cache: InterpretersCache, botname: String, channels: List[St
   val ADMINS = List("imeredith", "lopex", "tpolecat", "OlegYch")
   val httpHandler = HttpHandler()
   def start() {
-    new Thread(){
+    new Thread() {
       override def run(): Unit = bot.startBot()
       start()
     }
   }
 
-  private def timeout[T](line: String)(f: String => T): T = {
-    import scala.concurrent.ExecutionContext.Implicits.global
-    import scala.concurrent.{Future, Promise}
-    import scala.util.Success
-    val timeout = Promise[Boolean]()
-    try {
-      Future {
-        scala.concurrent.blocking(Thread.sleep(1000 * 60))
-        timeout.tryComplete(Success(true))
-      }
-      timeout.future.foreach { timeout =>
-        if (timeout) {
-          println(s"!!!!!!!!! timed out evaluating $line")
-          sys.exit(-1)
-        }
-      }
-      f(line)
-    } catch {
-      case e: Exception => throw e
-      case e: Throwable => e.printStackTrace(); sys.exit(-1)
-    } finally {
-      cache.scalaInt.cleanUp()
-      println(s"scalas ${cache.scalaInt.size()} memory free ${Runtime.getRuntime.freeMemory() / 1024 / 1024} of ${Runtime.getRuntime.totalMemory() / 1024 / 1024}")
-      timeout.tryComplete(Success(false))
-    }
-  }
   private val builder = settings(new Builder[PircBotX].
     setName(botname).setEncoding(Charset.forName("UTF-8")).setAutoNickChange(true).setAutoReconnect(true)
     .setServerHostname("irc.freenode.net")
@@ -63,7 +37,7 @@ case class Multibot(cache: InterpretersCache, botname: String, channels: List[St
       def sendLines(channel: String, message: String) = {
         println(message)
 
-        message split "\n" filter (!_.isEmpty) take NUMLINES foreach {m =>
+        message split "\n" filter (!_.isEmpty) take NUMLINES foreach { m =>
           val message = " " + (if (!m.isEmpty && m.charAt(0) == 13) m.substring(1) else m)
           if (channel == sender) e.respond(message)
           else e.getBot.getUserChannelDao.getChannel(channel).send().message(message)
@@ -71,8 +45,8 @@ case class Multibot(cache: InterpretersCache, botname: String, channels: List[St
       }
       def interpreters = InterpretersHandler(cache, httpHandler, sendLines)
       def admin = AdminHandler(e.getBot.getNick + ":", ADMINS, _ => (), _ => (), sendLines) //todo
-      timeout(e.getMessage) { message =>
-        val msg = Msg(channel, sender, message)
+      DieOn.error {
+        val msg = Msg(channel, sender, e.getMessage)
         interpreters.serve(msg)
         admin.serve(msg)
       }

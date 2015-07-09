@@ -1,8 +1,8 @@
 package org.multibot
 
-import java.net.NetPermission
-import java.security.{SecurityPermission, Permission}
 import java.io.{File, FilePermission}
+import java.net.NetPermission
+import java.security.{Permission, SecurityPermission}
 import java.util.PropertyPermission
 
 /**
@@ -18,13 +18,7 @@ object ScriptSecurityManager extends SecurityManager {
     try {
       activate
       f
-    }
-    catch {
-      case e: Exception => throw e
-      case e: Throwable => e.printStackTrace(); sys.exit(-1)
-    } finally {
-      deactivate
-    }
+    } finally deactivate
   }
 
   override def checkPermission(perm: Permission) {

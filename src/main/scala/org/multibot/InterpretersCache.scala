@@ -52,10 +52,16 @@ case class InterpretersCache(preload: List[String]) {
   }
 
   def scalaInterpreter(channel: String)(f: (IMain, ByteArrayOutputStream) => String) = this.synchronized {
+    import scala.concurrent.duration._
     val si = scalaInt.get(channel)
-    ScriptSecurityManager.hardenPermissions(captureOutput {
-      f(si, conOut)
-    })
+    val r = DieOn.timeout(1.minute) {
+      ScriptSecurityManager.hardenPermissions(captureOutput {
+        f(si, conOut)
+      })
+    }
+    scalaInt.cleanUp()
+    println(s"scalas ${scalaInt.size()} memory free ${Runtime.getRuntime.freeMemory() / 1024 / 1024} of ${Runtime.getRuntime.totalMemory() / 1024 / 1024}")
+    r
   }
 
   private def interpreterCache[K <: AnyRef, V <: AnyRef](loader: CacheLoader[K, V]) = {

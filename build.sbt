@@ -40,7 +40,7 @@ libraryDependencies ++= {
     "com.github.julien-truffaut" %% "monocle-macro" % monocleVersion,
     "org.spire-math" %% "spire" % spireVersion,
     "org.scalaz.stream" %% "scalaz-stream" % scalazStreamVersion,
-    "org.pelotom" %% "effectful" % "1.0.1"
+    "org.pelotom" %% "effectful" % "1.1-SNAPSHOT"
   )
 }
 

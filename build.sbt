@@ -64,9 +64,9 @@ resolvers += "Scalaz Bintray Repo" at "http://dl.bintray.com/scalaz/releases"
 
 resolvers += "linter" at "https://hairyfotr.github.io/linteRepo/releases"
 
-addCompilerPlugin("com.foursquare.lint" %% "linter" % "0.1.9")
+addCompilerPlugin("com.foursquare.lint" %% "linter" % "0.1.11")
 
-libraryDependencies += "com.foursquare.lint" %% "linter" % "0.1.9"
+libraryDependencies += "com.foursquare.lint" %% "linter" % "0.1.11"
 
 //scalacOptions += "-P:linter:disable:OLOLOUseHypot+CloseSourceFile+OptionOfOption"
 
@@ -86,7 +86,7 @@ buildInfoPackage := "org.multibot"
 
 resolvers += "bintray/non" at "http://dl.bintray.com/non/maven"
 
-addCompilerPlugin("org.spire-math" %% "kind-projector" % "0.5.4")
+addCompilerPlugin("org.spire-math" %% "kind-projector" % "0.6.0")
 
-libraryDependencies += "org.spire-math" %% "kind-projector" % "0.5.4"
+libraryDependencies += "org.spire-math" %% "kind-projector" % "0.6.0"
 

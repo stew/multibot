@@ -52,7 +52,7 @@ object ScriptSecurityManager extends SecurityManager {
 
     val allowedFiles =
       Seq( """.*\.class""", """.*\.jar""", """.*classes.*""", """.*\.properties""",
-        """.*src/main/scala.*""", """.*/?target""", ".")
+        """.*src/main/scala.*""", """.*/?target""", ".", """.*\$line.*""")
     val isClass = allowedFiles.exists(allowed => perm.getName.replaceAll( """\""" + """\""", "/").matches(allowed) || new File(perm.getName).getAbsolutePath == new File(allowed).getAbsolutePath)
 
     val readClass = file && isClass && read

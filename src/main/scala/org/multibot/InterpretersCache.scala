@@ -37,6 +37,7 @@ case class InterpretersCache(preload: List[String]) {
       settings.usejavacp.value = true
       settings.deprecation.value = true
       settings.feature.value = false
+      settings.Yreploutdir.value = ""
       val si = new IMain(settings)
 
       val imports = List("scalaz._", "Scalaz._", "reflect.runtime.universe.reify", "org.scalacheck.Prop._", "monocle.syntax._", "monocle.macros._", "effectful._")

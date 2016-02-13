@@ -17,7 +17,7 @@ case class Multibot(cache: InterpretersCache, botname: String, channels: List[St
                     settings: Builder[PircBotX] => Builder[PircBotX] = identity) {
   val NUMLINES = 5
   val LAMBDABOT = "lambdabot"
-  val ADMINS = List("imeredith", "lopex", "tpolecat", "OlegYch")
+  val ADMINS = List("tpolecat", "stew", "OlegYch", "milessabin")
   val httpHandler = HttpHandler()
   def start() {
     new Thread() {

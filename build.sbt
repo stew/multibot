@@ -23,8 +23,8 @@ scalaVersion := "2.11.7"
 resolvers += "Scalaz Bintray Repo" at "http://dl.bintray.com/scalaz/releases"
 
 libraryDependencies ++= {
-  val catsVersion = "0.4.1"
-  val shapelessVersion = "2.2.5"
+  val catsVersion = "0.6.1"
+  val shapelessVersion = "2.3.1"
   val spireVersion = "0.11.0"
   Seq(
     "org.typelevel" %% "cats-core" % catsVersion,

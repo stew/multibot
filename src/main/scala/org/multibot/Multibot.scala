@@ -37,11 +37,19 @@ case class Multibot(cache: InterpretersCache, botname: String, channels: List[St
       def sendLines(channel: String, message: String) = {
         println(message)
 
-        message split "\n" filter (!_.isEmpty) take NUMLINES foreach { m =>
-          val message = " " + (if (!m.isEmpty && m.charAt(0) == 13) m.substring(1) else m)
-          if (channel == sender) e.respond(message)
-          else e.getBot.getUserChannelDao.getChannel(channel).send().message(message)
-        }
+        message
+            .replace("\r", "")
+            .replace("`", "\'")
+            .split("\n")
+            .filter(_.nonEmpty)
+            .take(NUMLINES)
+            .map(m => s"```$m```")
+            .foreach(m => {
+              if (channel == sender) e.respond(m)
+              else e.getBot.getUserChannelDao.getChannel(channel).send().message(m)
+            })
+
+
       }
       def interpreters = InterpretersHandler(cache, httpHandler, sendLines)
       def admin = AdminHandler(e.getBot.getNick + ":", ADMINS, _ => (), _ => (), sendLines) //todo
